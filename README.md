@@ -46,6 +46,7 @@ To repozytorium zawiera na ten moment dwie bliźniacze aplikacje, z których mo�
 Aplikacja, która daje Ci bezpieczny, osadzony panel dostępowy z możliwością przesyłania zdjęć prosto na Twoją cyfrową ramkę w Home Assistancie z dowolnego miejsca. Mniejszy brat dużo większej aplikacji, która nadejdzie wkrótce™!
 ### 🧪 Photo Frame Drop Beta
 Wersja testowa dla entuzjastów chcących na własnej skórze sprawdzać najnowsze łatki i funkcje tuż przed ich trafieniem do oficjalnego wydania.
+
 ---
 ## Instalacja
 Możesz dodać to repozytorium do swojego Home Assistanta klikając w poniższy przycisk:  
