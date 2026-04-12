@@ -4,9 +4,9 @@ Welcome to my repository of Home Assistant Apps.
 This repository currently contains two twin applications, which you can use depending on whether you prefer the stable version or want to test the newest features in Beta.
 ## Available Apps
 ### 🖼️ Photo Frame [Drop](https://github.com/GwiezdnySzeryf/Gwiezdny-Szeryf-s-HA-Apps/blob/main/photo_frame_drop/DOCS.md)
-[More Info](https://github.com/GwiezdnySzeryf/Gwiezdny-Szeryf-s-HA-Apps/blob/main/photo_frame_drop/DOCS.md)  
-The smaller brother of a much larger app that is coming soon™!
-An application that gives you a secure, embedded access panel to instantly upload photos straight to your digital picture frame in Home Assistant from anywhere. More info here: [DOCS.md](https://github.com/GwiezdnySzeryf/Gwiezdny-Szeryf-s-HA-Apps/blob/main/photo_frame_drop/DOCS.md)
+[More info](https://github.com/GwiezdnySzeryf/Gwiezdny-Szeryf-s-HA-Apps/blob/main/photo_frame_drop/DOCS.md)  
+
+An application that gives you a secure, embedded access panel to instantly upload photos straight to your digital picture frame in Home Assistant from anywhere. More info here: [DOCS.md](https://github.com/GwiezdnySzeryf/Gwiezdny-Szeryf-s-HA-Apps/blob/main/photo_frame_drop/DOCS.md).  The smaller brother of a much larger app that is coming soon™!
 ### 🧪 Photo Frame Drop Beta
 A testing version for enthusiasts who want to experience the latest patches and features firsthand right before they hit the official release.
 
@@ -40,9 +40,10 @@ By using this software, you agree that you do so **at your own risk**. The autho
 Witaj w moim repozytorium aplikacji dla Home Assistanta.
 To repozytorium zawiera na ten moment dwie bliźniacze aplikacje, z których możesz korzystać zależnie od tego, czy wolisz używać wersji stabilnej, czy testować nowości w wersji Beta.
 ## Dostępne Aplikacje
-### 🖼️ Photo Frame Drop
-Mniejszy brat dużo większej aplikacji, która nadejdzie wkrótce™!
-Aplikacja, która daje Ci bezpieczny, osadzony panel dostępowy z możliwością przesyłania zdjęć prosto na Twoją cyfrową ramkę w Home Assistancie z dowolnego miejsca.
+### 🖼️ Photo Frame [Drop](https://github.com/GwiezdnySzeryf/Gwiezdny-Szeryf-s-HA-Apps/blob/main/photo_frame_drop/DOCS.md)
+[Więcej info](https://github.com/GwiezdnySzeryf/Gwiezdny-Szeryf-s-HA-Apps/blob/main/photo_frame_drop/DOCS.md)   
+
+Aplikacja, która daje Ci bezpieczny, osadzony panel dostępowy z możliwością przesyłania zdjęć prosto na Twoją cyfrową ramkę w Home Assistancie z dowolnego miejsca. Mniejszy brat dużo większej aplikacji, która nadejdzie wkrótce™!
 ### 🧪 Photo Frame Drop Beta
 Wersja testowa dla entuzjastów chcących na własnej skórze sprawdzać najnowsze łatki i funkcje tuż przed ich trafieniem do oficjalnego wydania.
 ---
