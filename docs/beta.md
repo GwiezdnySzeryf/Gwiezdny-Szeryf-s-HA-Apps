@@ -1,3 +1,5 @@
+![Photo Frame Drop Beta logo](https://raw.githubusercontent.com/GwiezdnySzeryf/Gwiezdny-Szeryf-s-HA-Apps/main/photo_frame_drop_beta/icon.png){ width=120 align=right }
+
 # 🧪 Photo Frame Drop Beta
 
 **Photo Frame Drop Beta** to wersja testowa dla entuzjastów, którzy chcą sprawdzać najnowsze funkcje i poprawki tuż przed ich trafieniem do oficjalnego wydania.

@@ -1,3 +1,5 @@
+![Photo Frame Drop logo](https://raw.githubusercontent.com/GwiezdnySzeryf/Gwiezdny-Szeryf-s-HA-Apps/main/photo_frame_drop/icon.png){ width=120 align=right }
+
 # 🖼️ Photo Frame Drop
 
 ![HA App](https://img.shields.io/badge/Home%20Assistant-App-blue?logo=home-assistant)
@@ -16,7 +18,7 @@
 | Feature | Description |
 |---|---|
 | 📤 Drag & Drop | Drop photos directly into the browser window |
-| 🔒 Password protection | SHA-256 session tokens, brute-force rate limiting |
+| 🔒 Password protection | Session-based login with brute-force rate limiting |
 | 🖼️ Gallery | Lightbox viewer, Pillow-cached thumbnails, photo deletion |
 | 🏠 HA Ingress | Sidebar panel — no port forwarding required |
 | 🔔 Notifications | Alert on new uploads and failed login attempts |

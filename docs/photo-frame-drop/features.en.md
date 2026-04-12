@@ -16,15 +16,9 @@ After uploading, you have a full gallery with:
 
 ---
 
-## 🔒 Security
+## 🔑 Login and brute-force protection
 
-### SHA-256 session tokens
-
-Login is based on a session token stored as a SHA-256 hash. The password is never stored in plain text.
-
-### Brute-force protection
-
-The system tracks failed login attempts. After exceeding the attempt limit, the IP address is temporarily blocked. Each block can optionally trigger a notification with the attacker's IP address.
+Access to the panel requires a password. The system tracks failed login attempts — after exceeding the attempt limit, the IP address is temporarily blocked. Each block can optionally trigger a notification with the attacker's IP address.
 
 ---
 

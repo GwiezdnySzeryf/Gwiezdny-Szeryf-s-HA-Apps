@@ -33,8 +33,8 @@ Hasło wymagane do zalogowania się w interfejsie webowym. Używaj długiego, tr
 password: TrudneHaslo!2024
 ```
 
-!!! warning "Bezpieczeństwo"
-    Hasło jest przechowywane jako hash SHA-256. Mimo to używaj silnego hasła — panel jest dostępny z internetu jeśli korzystasz z zewnętrznego dostępu do HA.
+!!! warning "Uwaga"
+    Używaj silnego hasła — panel jest dostępny z internetu jeśli korzystasz z zewnętrznego dostępu do HA.
 
 ---
 

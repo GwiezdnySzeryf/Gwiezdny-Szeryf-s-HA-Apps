@@ -1,6 +1,6 @@
 <div class="hero">
   <h1>⭐ GwiezdnySzeryf's HA Apps</h1>
-  <p>Home Assistant add-ons — simple, secure, ready to use.</p>
+  <p>Home Assistant add-ons — simple, ready to use.</p>
   <div class="badge-row">
     <img src="https://img.shields.io/badge/Home%20Assistant-App-blue?logo=home-assistant" alt="HA">
     <img src="https://img.shields.io/badge/License-MPL%202.0-brightgreen" alt="License">
@@ -14,7 +14,7 @@
   <a class="app-card" href="photo-frame-drop/">
     <div class="icon">🖼️</div>
     <h3>Photo Frame Drop</h3>
-    <p>A secure panel for instantly uploading photos to your digital picture frame in Home Assistant. Drag & drop, thumbnails, brute-force protection.</p>
+    <p>A panel for instantly uploading photos to your digital picture frame in Home Assistant. Drag & drop, thumbnails, brute-force protection.</p>
   </a>
   <a class="app-card" href="beta/">
     <div class="icon">🧪</div>

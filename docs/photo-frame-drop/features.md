@@ -16,15 +16,9 @@ Po wgraniu zdjęć masz do dyspozycji pełną galerię z:
 
 ---
 
-## 🔒 Bezpieczeństwo
+## 🔑 Logowanie i ochrona przed brute-force
 
-### Sesje na SHA-256
-
-Logowanie opiera się na tokenie sesji zapisanym jako hash SHA-256. Hasło nigdy nie jest przechowywane w postaci jawnej.
-
-### Ochrona przed atakami brute-force
-
-System śledzi nieudane próby logowania. Po przekroczeniu limitu prób adres IP jest tymczasowo blokowany. Przy każdej blokadzie możesz opcjonalnie dostać powiadomienie z adresem IP sprawcy.
+Dostęp do panelu wymaga podania hasła. System śledzi nieudane próby logowania — po przekroczeniu limitu prób adres IP jest tymczasowo blokowany. Przy każdej blokadzie możesz opcjonalnie dostać powiadomienie z adresem IP sprawcy.
 
 ---
 

@@ -33,8 +33,8 @@ Password required to log in to the web interface. Use a long, hard-to-guess stri
 password: StrongPassword!2024
 ```
 
-!!! warning "Security"
-    The password is stored as a SHA-256 hash. Nevertheless, use a strong password — the panel is reachable from the internet if you have external access to your HA.
+!!! warning "Note"
+    Use a strong password — the panel is reachable from the internet if you have external access to your HA.
 
 ---
 
