@@ -3,9 +3,10 @@
 Welcome to my repository of Home Assistant Apps.
 This repository currently contains two twin applications, which you can use depending on whether you prefer the stable version or want to test the newest features in Beta.
 ## Available Apps
-### 🖼️ Photo Frame Drop
+### 🖼️ Photo Frame [Drop](https://github.com/GwiezdnySzeryf/Gwiezdny-Szeryf-s-HA-Apps/blob/main/photo_frame_drop/DOCS.md)
+[More Info](https://github.com/GwiezdnySzeryf/Gwiezdny-Szeryf-s-HA-Apps/blob/main/photo_frame_drop/DOCS.md)  
 The smaller brother of a much larger app that is coming soon™!
-An application that gives you a secure, embedded access panel to instantly upload photos straight to your digital picture frame in Home Assistant from anywhere.
+An application that gives you a secure, embedded access panel to instantly upload photos straight to your digital picture frame in Home Assistant from anywhere. More info here: [DOCS.md](https://github.com/GwiezdnySzeryf/Gwiezdny-Szeryf-s-HA-Apps/blob/main/photo_frame_drop/DOCS.md)
 ### 🧪 Photo Frame Drop Beta
 A testing version for enthusiasts who want to experience the latest patches and features firsthand right before they hit the official release.
 
