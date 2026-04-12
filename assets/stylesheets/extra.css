@@ -1,0 +1,84 @@
+/* ── Palette tweaks ── */
+:root {
+  --md-primary-fg-color: #e65100;
+  --md-accent-fg-color:  #ffb300;
+}
+
+/* ── Hero banner on home page ── */
+.hero {
+  padding: 3rem 1.5rem 2rem;
+  text-align: center;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(255, 179, 0, 0.15);
+}
+
+.hero h1 {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: #ffb300 !important;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.hero p {
+  font-size: 1.1rem;
+  color: rgba(255,255,255,0.75);
+  margin-bottom: 1.5rem;
+}
+
+.hero .badge-row {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ── App cards on home page ── */
+.app-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+  margin: 1.5rem 0;
+}
+
+.app-card {
+  padding: 1.5rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 10px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  text-decoration: none !important;
+  display: block;
+}
+
+.app-card:hover {
+  border-color: var(--md-accent-fg-color);
+  box-shadow: 0 4px 20px rgba(255, 179, 0, 0.12);
+}
+
+.app-card .icon {
+  font-size: 2.2rem;
+  margin-bottom: 0.6rem;
+}
+
+.app-card h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1.1rem;
+}
+
+.app-card p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--md-default-fg-color--light);
+}
+
+/* ── Admonition tweak — ha-info ── */
+.md-typeset .admonition.ha-note,
+.md-typeset details.ha-note {
+  border-color: #e65100;
+}
+.md-typeset .ha-note > .admonition-title,
+.md-typeset .ha-note > summary {
+  background-color: rgba(230, 81, 0, 0.1);
+}
