@@ -1,0 +1,112 @@
+site_name: GwiezdnySzeryf's HA Apps
+site_description: Home Assistant add-ons — documentation / dokumentacja
+site_url: https://gwiezdnyszeryf.github.io/Gwiezdny-Szeryf-s-HA-Apps/
+repo_url: https://github.com/GwiezdnySzeryf/Gwiezdny-Szeryf-s-HA-Apps
+repo_name: GwiezdnySzeryf/HA-Apps
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - scheme: slate
+      primary: deep orange
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+    - scheme: default
+      primary: deep orange
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+  font:
+    text: Nunito
+    code: JetBrains Mono
+  icon:
+    repo: fontawesome/brands/github
+    logo: material/home-assistant
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - toc.integrate
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.action.edit
+
+extra_css:
+  - assets/stylesheets/extra.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/GwiezdnySzeryf
+  alternate:
+    - name: Polski
+      link: /Gwiezdny-Szeryf-s-HA-Apps/
+      lang: pl
+    - name: English
+      link: /Gwiezdny-Szeryf-s-HA-Apps/en/
+      lang: en
+
+plugins:
+  - search:
+      lang:
+        - pl
+        - en
+  - i18n:
+      docs_structure: suffix
+      fallback_to_default: true
+      reconfigure_material: true
+      reconfigure_search: true
+      languages:
+        - locale: pl
+          default: true
+          name: Polski
+          build: true
+          site_name: GwiezdnySzeryf's HA Apps
+        - locale: en
+          name: English
+          build: true
+          site_name: GwiezdnySzeryf's HA Apps
+          nav_translations:
+            Strona główna: Home
+            Photo Frame Drop: Photo Frame Drop
+            Przegląd: Overview
+            Instalacja: Installation
+            Konfiguracja: Configuration
+            Funkcje: Features
+            Changelog: Changelog
+            Wersja Beta: Beta Version
+            O wersji Beta: About Beta
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Strona główna: index.md
+  - Photo Frame Drop:
+    - Przegląd: photo-frame-drop/index.md
+    - Instalacja: photo-frame-drop/installation.md
+    - Konfiguracja: photo-frame-drop/configuration.md
+    - Funkcje: photo-frame-drop/features.md
+    - Changelog: photo-frame-drop/changelog.md
+  - Wersja Beta:
+    - O wersji Beta: beta.md
