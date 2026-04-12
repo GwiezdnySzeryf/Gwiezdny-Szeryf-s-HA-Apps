@@ -34,4 +34,10 @@ Dodaliśmy mechanizm, w którym system HA informuje (poprzez dzwonek na aplikacj
 *   Dodano **Tłumaczenia interfejsu** zarówno od strony samego Home Assistanta (opcje konfiguracyjne dodatku - plik w `translations/pl.yaml`), jak i we front-endzie dla końcowego klienta - wbudowany przełącznik z flagą używający LocalStorage do przytrzymania Twoich ustawień (PL/EN).
 *   Skonfigurowaliśmy edytowalny tekst prosto pod tytułem `Photo Frame Drop`, pozwalający zostawić instrukcję dla np. członków rodziny.
 
+## 7. Wielkie przenosiny i narodziny nowej architektury
+*   Stworzyliśmy zupełnie nowe, kompleksowe repozytorium `Gwiezdny-Szeryf-s-HA-Apps` w pełni przygotowane do hostowania wielu aplikacji w jednym miejscu!
+*   **Zmiana nazewnictwa**: Tradycyjne "Dodatki" (Add-ons) określamy od teraz nowocześnie jako "Aplikacje", a sam *Photo Frame Drop* został hucznie określony mniejszym bratem nadciągającego w przyszłości giganta!
+*   **Wersja Beta**: Rozgałęziliśmy rozwój. Aplikacja podzieliła się na wariant stabilny oraz **Photo Frame Drop Beta**. 
+*   **Grafiki Beta**: Wersja Beta otrzymała swój własny, unikalny zestaw wektorowych ikon z dopiskiem "BETA", specjalnie zaimplementowany do panelu logowania, nawigacji oraz galerii. Obie wersje zostały sprytnie odizolowane na osobnych portach (`8099` dla stabilnej i `8100` dla Beta) oraz wrzucają zdjęcia do bezpiecznych, osobnych folderów w `/media/`!
+
 Gdybyś kiedykolwiek miał problem z powracaniem do kodu, ten plik uratuje naszą rozmowę!
