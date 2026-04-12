@@ -6,7 +6,7 @@
 
 <p align="center">
   📸 Simple photo upload for Home Assistant<br>
-  🔒 Secure • ⚡ Drag & Drop • 🖼️ Digital frame ready
+  🔒 Secure • ⚡ Drag & Drop • 🖼️ Great for digital frames
 </p>
 
 <p align="center">
