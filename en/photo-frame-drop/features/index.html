@@ -618,41 +618,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#security" class="md-nav__link">
+  <a href="#login-and-brute-force-protection" class="md-nav__link">
     <span class="md-ellipsis">
       
-        🔒 Security
+        🔑 Login and brute-force protection
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="🔒 Security">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#sha-256-session-tokens" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        SHA-256 session tokens
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#brute-force-protection" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Brute-force protection
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -846,11 +818,8 @@
 <li><strong>Deletion</strong> — remove photos directly from the gallery</li>
 </ul>
 <hr />
-<h2 id="security">🔒 Security<a class="headerlink" href="#security" title="Permanent link">&para;</a></h2>
-<h3 id="sha-256-session-tokens">SHA-256 session tokens<a class="headerlink" href="#sha-256-session-tokens" title="Permanent link">&para;</a></h3>
-<p>Login is based on a session token stored as a SHA-256 hash. The password is never stored in plain text.</p>
-<h3 id="brute-force-protection">Brute-force protection<a class="headerlink" href="#brute-force-protection" title="Permanent link">&para;</a></h3>
-<p>The system tracks failed login attempts. After exceeding the attempt limit, the IP address is temporarily blocked. Each block can optionally trigger a notification with the attacker's IP address.</p>
+<h2 id="login-and-brute-force-protection">🔑 Login and brute-force protection<a class="headerlink" href="#login-and-brute-force-protection" title="Permanent link">&para;</a></h2>
+<p>Access to the panel requires a password. The system tracks failed login attempts — after exceeding the attempt limit, the IP address is temporarily blocked. Each block can optionally trigger a notification with the attacker's IP address.</p>
 <hr />
 <h2 id="home-assistant-ingress">🏠 Home Assistant Ingress<a class="headerlink" href="#home-assistant-ingress" title="Permanent link">&para;</a></h2>
 <p>The add-on runs through Home Assistant's built-in <strong>Ingress</strong> mechanism, which means:</p>
