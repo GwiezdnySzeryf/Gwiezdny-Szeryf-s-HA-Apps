@@ -253,11 +253,24 @@
           status.textContent = t.done;
           status.className = "upload-status success";
           refreshGallery();
+          setTimeout(() => li.remove(), 5000);
         } else {
-          status.textContent = t.failed;
+          let errorMsg = t.failed;
+          if (xhr.responseText) {
+            let text = xhr.responseText.replace(/^[0-9]{3}: /, '');
+            if (!text.includes('<html') && text.trim().length > 0) {
+              errorMsg = text.trim();
+            } else if (xhr.statusText) {
+              errorMsg = xhr.statusText;
+            }
+          } else if (xhr.statusText) {
+            errorMsg = xhr.statusText;
+          }
+          status.textContent = errorMsg;
+          status.title = errorMsg;
           status.className = "upload-status error";
+          setTimeout(() => li.remove(), 8000);
         }
-        setTimeout(() => li.remove(), 5000);
       });
 
       xhr.addEventListener("error", () => {
