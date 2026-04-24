@@ -35,7 +35,7 @@ Alternatively, you can do it manually:
 ## Documentation & Support
 
 If you need help, are looking for a tutorial, or just want to learn more about how things work, please visit the repository's Wiki:
-👉 **[Gwiezdny-Szeryf-s-HA-Apps Wiki](https://github.com/GwiezdnySzeryf/Gwiezdny-Szeryf-s-HA-Apps/wiki)**
+👉 **[Gwiezdny-Szeryf-s-HA-Apps Wiki](https://gwiezdnyszeryf.github.io/Gwiezdny-Szeryf-s-HA-Apps/)**
 
 ---
 
@@ -85,7 +85,7 @@ Alternatywnie, możesz to zrobić ręcznie:
 ## Dokumentacja i Wsparcie
 
 Jeśli potrzebujesz pomocy, szukasz poradnika lub po prostu chcesz dowiedzieć się więcej o tym, jak to działa, odwiedź Wiki repozytorium:
-👉 **[Gwiezdny-Szeryf-s-HA-Apps Wiki](https://github.com/GwiezdnySzeryf/Gwiezdny-Szeryf-s-HA-Apps/wiki)**
+👉 **[Gwiezdny-Szeryf-s-HA-Apps Wiki](https://gwiezdnyszeryf.github.io/Gwiezdny-Szeryf-s-HA-Apps/)**
 
 ---
 
