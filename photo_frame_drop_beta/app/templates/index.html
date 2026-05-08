@@ -266,6 +266,7 @@
       status.className = "upload-status error";
       errorBox.textContent = uploadErrorMessage(error);
       errorBox.hidden = false;
+      setTimeout(() => li.remove(), 15000);
     }
 
     function uploadSingleFile(file) {
@@ -323,6 +324,7 @@
         status.className = "upload-status error";
         errorBox.textContent = I18N[lang].upload_errors.unknown;
         errorBox.hidden = false;
+        setTimeout(() => li.remove(), 15000);
       });
 
       xhr.send(formData);

@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.3] - 2026-05-09
+### Changed
+- Komunikaty błędów uploadu w wersji Beta znikają automatycznie po dłuższym czasie.
+
 ## [1.0.2] - 2026-05-09
 ### Changed
 - Dodano lokalizowane komunikaty błędów uploadu niezależne od języka backendu.
