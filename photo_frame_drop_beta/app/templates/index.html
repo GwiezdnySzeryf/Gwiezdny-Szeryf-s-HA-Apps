@@ -220,6 +220,22 @@
       files.forEach(uploadSingleFile);
     }
 
+    function uploadErrorMessage(xhr) {
+      const fallback = I18N[lang].failed;
+      const statusText = xhr.statusText ? xhr.statusText.trim() : "";
+      const responseText = xhr.responseText ? xhr.responseText.trim() : "";
+
+      if (!responseText) return statusText || fallback;
+
+      const text = responseText
+        .replace(/^\d{3}:\s*/, "")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      return text || statusText || fallback;
+    }
+
     function uploadSingleFile(file) {
       const t = I18N[lang];
       const li = document.createElement("li");
@@ -255,17 +271,7 @@
           refreshGallery();
           setTimeout(() => li.remove(), 5000);
         } else {
-          let errorMsg = t.failed;
-          if (xhr.responseText) {
-            let text = xhr.responseText.replace(/^[0-9]{3}: /, '');
-            if (!text.includes('<html') && text.trim().length > 0) {
-              errorMsg = text.trim();
-            } else if (xhr.statusText) {
-              errorMsg = xhr.statusText;
-            }
-          } else if (xhr.statusText) {
-            errorMsg = xhr.statusText;
-          }
+          const errorMsg = uploadErrorMessage(xhr);
           status.textContent = errorMsg;
           status.title = errorMsg;
           status.className = "upload-status error";

@@ -19,6 +19,13 @@
 
 ---
 
+## Aktualnie testowane poprawki
+
+- Czytelniejsze komunikaty błędów podczas wgrywania zdjęć, np. przy zbyt dużym pliku albo niedozwolonym rozszerzeniu.
+- Dłuższe wyświetlanie błędów uploadu w panelu, żeby łatwiej było odczytać przyczynę odrzucenia pliku.
+
+---
+
 ## Instalacja
 
 Instalacja przebiega identycznie jak w przypadku [wersji stabilnej](photo-frame-drop/installation.md) — wystarczy wybrać **Photo Frame Drop Beta** z listy w Sklepie z dodatkami po dodaniu repozytorium.

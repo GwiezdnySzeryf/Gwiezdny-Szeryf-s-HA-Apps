@@ -19,6 +19,13 @@
 
 ---
 
+## Currently Tested Fixes
+
+- Clearer upload error messages, for example when a file is too large or its extension is not allowed.
+- Upload errors stay visible longer in the panel so the rejection reason is easier to read.
+
+---
+
 ## Installation
 
 Installation is identical to the [stable version](photo-frame-drop/installation.md) — simply select **Photo Frame Drop Beta** from the list in the Add-on Store after adding the repository.
