@@ -22,7 +22,8 @@
 ## Aktualnie testowane poprawki
 
 - Czytelniejsze komunikaty błędów podczas wgrywania zdjęć, np. przy zbyt dużym pliku albo niedozwolonym rozszerzeniu.
-- Dłuższe wyświetlanie błędów uploadu w panelu, żeby łatwiej było odczytać przyczynę odrzucenia pliku.
+- Walidacja pliku w przeglądarce przed rozpoczęciem uploadu.
+- Osobne pole z pełnym opisem błędu pod odrzuconym plikiem.
 
 ---
 

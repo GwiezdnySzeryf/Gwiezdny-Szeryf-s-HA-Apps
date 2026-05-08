@@ -22,7 +22,8 @@
 ## Currently Tested Fixes
 
 - Clearer upload error messages, for example when a file is too large or its extension is not allowed.
-- Upload errors stay visible longer in the panel so the rejection reason is easier to read.
+- Browser-side file validation before the upload starts.
+- A separate error field with the full rejection reason below the file.
 
 ---
 

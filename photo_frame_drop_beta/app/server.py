@@ -13,6 +13,7 @@ GET  /static/...           Static assets (CSS, JS)
 """
 
 import hashlib
+import json
 import logging
 import os
 import re
@@ -95,6 +96,36 @@ def _check_csrf(request: web.Request) -> None:
         raise web.HTTPForbidden(reason="CSRF check failed (missing X-Requested-With)")
 
 
+def _upload_error(
+    status: int,
+    code: str,
+    message: str,
+    **details: Any,
+) -> web.Response:
+    """Return stable upload errors that the UI can translate by code."""
+    payload = {"status": "error", "code": code, "message": message}
+    payload.update(details)
+    return web.json_response(payload, status=status)
+
+
+@web.middleware
+async def _upload_error_middleware(request: web.Request, handler: Any) -> web.StreamResponse:
+    try:
+        return await handler(request)
+    except web.HTTPRequestEntityTooLarge as exc:
+        if request.path == "/upload":
+            config: dict = request.app["config"]
+            return _upload_error(
+                413,
+                "too_large",
+                "File exceeds the configured upload limit.",
+                max_bytes=config["max_bytes"],
+                max_mb=config["max_mb"],
+                actual_bytes=getattr(exc, "actual_size", None),
+            )
+        raise
+
+
 def _get_client_ip(request: web.Request) -> str:
     """Get the real client IP, even behind HA Ingress/Proxy."""
     return request.headers.get("X-Forwarded-For", request.remote).split(",")[0].strip()
@@ -119,7 +150,10 @@ def _record_failed_login(ip: str) -> None:
 
 def create_app(config: dict[str, Any]) -> web.Application:
     """Create and configure the aiohttp Application."""
-    app = web.Application(client_max_size=config["max_bytes"] + 65536)
+    app = web.Application(
+        client_max_size=config["max_bytes"] + 1024 * 1024,
+        middlewares=[_upload_error_middleware],
+    )
     app["config"] = config
 
     app.router.add_get("/health", handle_health)
@@ -167,6 +201,16 @@ async def handle_index(request: web.Request) -> web.Response:
 
     text = (TEMPLATES_DIR / "index.html").read_text()
     text = text.replace("{{ base_path }}", base_path)
+    text = text.replace(
+        "{{ upload_config }}",
+        json.dumps(
+            {
+                "allowedExtensions": sorted(config["allowed_extensions"]),
+                "maxBytes": config["max_bytes"],
+                "maxMb": config["max_mb"],
+            }
+        ),
+    )
     return web.Response(text=text, content_type="text/html")
 
 
@@ -252,22 +296,27 @@ async def handle_upload(request: web.Request) -> web.Response:
         field = await reader.next()
 
     if field is None:
-        raise web.HTTPBadRequest(reason="Request must contain a 'file' field.")
+        return _upload_error(
+            400,
+            "missing_file",
+            "Request must contain a 'file' field.",
+        )
 
     original_name: str = field.filename or "unknown"
     ext = Path(original_name).suffix.lower().lstrip(".")
 
     if not ext:
-        raise web.HTTPBadRequest(reason="File has no extension.")
+        return _upload_error(400, "missing_extension", "File has no extension.")
 
     # Validation is strictly case-insensitive because config["allowed_extensions"]
     # was converted to lowercase in main.py and `ext` is also converted to lowercase.
     if ext not in config["allowed_extensions"]:
-        raise web.HTTPUnsupportedMediaType(
-            reason=(
-                f"Extension '.{ext}' is not permitted. "
-                f"Allowed: {', '.join(sorted(config['allowed_extensions']))}"
-            )
+        return _upload_error(
+            415,
+            "unsupported_extension",
+            f"Extension '.{ext}' is not permitted.",
+            extension=ext,
+            allowed=sorted(config["allowed_extensions"]),
         )
 
     safe_stem = _sanitize_filename(Path(original_name).stem)
@@ -288,17 +337,19 @@ async def handle_upload(request: web.Request) -> web.Response:
                 if total_bytes > max_bytes:
                     await f.close()
                     dest_path.unlink(missing_ok=True)
-                    raise web.HTTPRequestEntityTooLarge(
-                        max_size=max_bytes,
-                        actual_size=total_bytes,
+                    return _upload_error(
+                        413,
+                        "too_large",
+                        "File exceeds the configured upload limit.",
+                        max_bytes=max_bytes,
+                        max_mb=config["max_mb"],
+                        actual_bytes=total_bytes,
                     )
                 await f.write(chunk)
     except OSError as exc:
         logger.error("I/O error writing %s: %s", dest_path, exc)
         dest_path.unlink(missing_ok=True)
-        raise web.HTTPInternalServerError(
-            reason="Could not save file to disk."
-        ) from exc
+        return _upload_error(500, "save_failed", "Could not save file to disk.")
 
     client_ip = _get_client_ip(request)
     logger.info(

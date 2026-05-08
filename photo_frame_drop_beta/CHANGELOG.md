@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.2] - 2026-05-09
+### Changed
+- Dodano lokalizowane komunikaty błędów uploadu niezależne od języka backendu.
+- Dodano walidację plików w przeglądarce przed rozpoczęciem uploadu.
+- Dodano osobne pole z pełnym opisem błędu pod odrzuconym plikiem.
+
 ## [1.0.1] - 2026-05-09
 ### Changed
 - Poprawiono komunikaty błędów podczas wgrywania zdjęć w wersji Beta.

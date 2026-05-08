@@ -77,6 +77,7 @@ def load_config() -> dict:
     return {
         "media_path": os.environ["PHOTO_FRAME_MEDIA_PATH"],
         "password": os.environ["PHOTO_FRAME_PASSWORD"],
+        "max_mb": max_mb,
         "max_bytes": max_mb * 1024 * 1024,
         "allowed_extensions": allowed_extensions,
         "notify_on_upload": os.environ.get("PHOTO_FRAME_NOTIFY", "false").lower()

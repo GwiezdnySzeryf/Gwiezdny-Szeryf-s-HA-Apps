@@ -91,6 +91,7 @@
   <script>
     "use strict";
     window.basePath = "{{ base_path }}";
+    window.uploadConfig = {{ upload_config }};
 
     // ── i18n logic ───────────────────────────────────────────────────
     const I18N = {
@@ -105,6 +106,15 @@
         done: "✓ Gotowe",
         failed: "✗ Błąd",
         network_error: "✗ Błąd sieci",
+        rejected: "✗ Odrzucono",
+        upload_errors: {
+          missing_file: "Nie wybrano pliku do wgrania.",
+          missing_extension: "Plik nie ma rozszerzenia. Dodaj poprawne rozszerzenie, np. .jpg albo .png.",
+          unsupported_extension: (d) => `Format .${d.extension || "?"} nie jest obsługiwany. Dozwolone: ${(d.allowed || []).join(", ")}.`,
+          too_large: (d) => `Plik jest za duży. Limit: ${d.max_mb || Math.round((d.max_bytes || 0) / 1024 / 1024)} MB.`,
+          save_failed: "Nie udało się zapisać pliku na dysku Home Assistanta.",
+          unknown: "Nie udało się wgrać pliku. Spróbuj ponownie."
+        },
         photo_count: (n) => n === 1 ? `1 zdjęcie` : (n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20)) ? `${n} zdjęcia` : `${n} zdjęć`,
         confirm_delete: (name) => `Czy na pewno usunąć "${name}"?`,
         about_title: "O dodatku",
@@ -124,6 +134,15 @@
         done: "✓ Done",
         failed: "✗ Failed",
         network_error: "✗ Network error",
+        rejected: "✗ Rejected",
+        upload_errors: {
+          missing_file: "No file was selected for upload.",
+          missing_extension: "The file has no extension. Add a valid extension, such as .jpg or .png.",
+          unsupported_extension: (d) => `.${d.extension || "?"} files are not supported. Allowed: ${(d.allowed || []).join(", ")}.`,
+          too_large: (d) => `The file is too large. Limit: ${d.max_mb || Math.round((d.max_bytes || 0) / 1024 / 1024)} MB.`,
+          save_failed: "The file could not be saved to the Home Assistant disk.",
+          unknown: "The file could not be uploaded. Try again."
+        },
         photo_count: (n) => n === 1 ? `1 photo` : `${n} photos`,
         confirm_delete: (name) => `Delete "${name}"?`,
         about_title: "About",
@@ -220,20 +239,33 @@
       files.forEach(uploadSingleFile);
     }
 
-    function uploadErrorMessage(xhr) {
-      const fallback = I18N[lang].failed;
-      const statusText = xhr.statusText ? xhr.statusText.trim() : "";
-      const responseText = xhr.responseText ? xhr.responseText.trim() : "";
+    function uploadErrorMessage(error) {
+      const messages = I18N[lang].upload_errors;
+      const code = error?.code || "unknown";
+      const message = messages[code] || messages.unknown;
+      return typeof message === "function" ? message(error || {}) : message;
+    }
 
-      if (!responseText) return statusText || fallback;
+    function validateUploadFile(file) {
+      const config = window.uploadConfig || {};
+      const allowed = config.allowedExtensions || [];
+      const ext = file.name.includes(".") ? file.name.split(".").pop().toLowerCase() : "";
 
-      const text = responseText
-        .replace(/^\d{3}:\s*/, "")
-        .replace(/<[^>]+>/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
+      if (!ext) return { code: "missing_extension" };
+      if (allowed.length && !allowed.includes(ext)) {
+        return { code: "unsupported_extension", extension: ext, allowed };
+      }
+      if (config.maxBytes && file.size > config.maxBytes) {
+        return { code: "too_large", max_bytes: config.maxBytes, max_mb: config.maxMb };
+      }
+      return null;
+    }
 
-      return text || statusText || fallback;
+    function showUploadError(li, status, errorBox, error) {
+      status.textContent = I18N[lang].rejected;
+      status.className = "upload-status error";
+      errorBox.textContent = uploadErrorMessage(error);
+      errorBox.hidden = false;
     }
 
     function uploadSingleFile(file) {
@@ -244,17 +276,27 @@
         <span class="upload-name">${escapeHtml(file.name)}</span>
         <span class="upload-status pending">${t.uploading}</span>
         <progress class="upload-progress" value="0" max="100"></progress>
+        <div class="upload-error" hidden></div>
       `;
       uploadList.prepend(li);
 
       const status   = li.querySelector(".upload-status");
       const progress = li.querySelector(".upload-progress");
+      const errorBox = li.querySelector(".upload-error");
+
+      const validationError = validateUploadFile(file);
+      if (validationError) {
+        progress.remove();
+        showUploadError(li, status, errorBox, validationError);
+        return;
+      }
 
       const formData = new FormData();
       formData.append("file", file);
 
       const xhr = new XMLHttpRequest();
       xhr.open("POST", window.basePath + "/upload");
+      xhr.responseType = "json";
       xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
 
       xhr.upload.addEventListener("progress", e => {
@@ -271,11 +313,7 @@
           refreshGallery();
           setTimeout(() => li.remove(), 5000);
         } else {
-          const errorMsg = uploadErrorMessage(xhr);
-          status.textContent = errorMsg;
-          status.title = errorMsg;
-          status.className = "upload-status error";
-          setTimeout(() => li.remove(), 8000);
+          showUploadError(li, status, errorBox, xhr.response);
         }
       });
 
@@ -283,6 +321,8 @@
         progress.remove();
         status.textContent = t.network_error;
         status.className = "upload-status error";
+        errorBox.textContent = I18N[lang].upload_errors.unknown;
+        errorBox.hidden = false;
       });
 
       xhr.send(formData);

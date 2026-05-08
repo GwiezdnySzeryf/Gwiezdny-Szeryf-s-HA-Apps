@@ -188,6 +188,18 @@ main { max-width: 900px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
 .upload-status.success { color: var(--success); }
 .upload-status.error   { color: var(--error); }
 
+.upload-error {
+  grid-column: 1 / -1;
+  color: var(--error);
+  background: rgba(220, 38, 38, .08);
+  border: 1px solid rgba(220, 38, 38, .25);
+  border-radius: 6px;
+  padding: .55rem .7rem;
+  font-size: .82rem;
+  line-height: 1.35;
+  white-space: normal;
+}
+
 .upload-progress {
   grid-column: 1;
   grid-row: 2;
