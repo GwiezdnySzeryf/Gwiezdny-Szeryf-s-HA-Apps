@@ -1,5 +1,5 @@
 name: "Photo Frame Drop Beta"
-version: "1.0.0"
+version: "1.0.1"
 slug: photo_frame_drop_beta
 description: "Drag & drop photos into your HA /media folder from anywhere, with a gallery and password protection. (Beta Version)"
 url: "https://github.com/GwiezdnySzeryf/Gwiezdny-Szeryf-s-HA-Apps"
