@@ -17,6 +17,11 @@ An application that gives you a secure, embedded access panel to instantly uploa
 ### 🧪 Photo Frame Drop Beta
 A testing version for enthusiasts who want to experience the latest patches and features firsthand right before they hit the official release.
 
+### 🧪 HA Panel App Beta
+[More info](https://github.com/GwiezdnySzeryf/Gwiezdny-Szeryf-s-HA-Apps/blob/main/ha_panel_app_beta/DOCS.md)
+
+A beta backend and Ingress panel for a native Android Home Assistant wallpanel. It handles tablet pairing with QR codes, dashboard configuration, WebSocket updates and tablet telemetry including charging state, battery level, IP address, screen resolution and aspect ratio.
+
 ---
 ## Installation
 
@@ -66,6 +71,11 @@ Aplikacja, która daje Ci bezpieczny, osadzony panel dostępowy z możliwością
 
 ### 🧪 Photo Frame Drop Beta
 Wersja testowa dla entuzjastów chcących na własnej skórze sprawdzać najnowsze łatki i funkcje tuż przed ich trafieniem do oficjalnego wydania.
+
+### 🧪 HA Panel App Beta
+[Więcej info](https://github.com/GwiezdnySzeryf/Gwiezdny-Szeryf-s-HA-Apps/blob/main/ha_panel_app_beta/DOCS.md)
+
+Wersja beta backendu i panelu Ingress dla natywnego wallpanelu Android Home Assistant. Obsluguje parowanie tabletow kodem QR, konfiguracje dashboardu, aktualizacje WebSocket i telemetrie tabletu: ladowanie, baterie, adres IP, rozdzielczosc ekranu oraz aspect ratio.
 
 ---
 ## Instalacja

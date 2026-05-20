@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HA Panel App Beta</title>
+  <link rel="stylesheet" href="{{ base_path }}/static/style.css?v=0.1.0" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand-mark">HA</div>
+    <div>
+      <h1>HA Panel <span>Beta</span></h1>
+      <p>Backend konfiguracji i telemetrii natywnego wallpanelu Android</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-ghost" id="refresh-btn" type="button">Odswiez</button>
+      <button class="btn-primary" id="pairing-btn" type="button">Dodaj tablet</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="grid summary-grid">
+      <article class="card metric-card">
+        <span class="metric-label">Tablety</span>
+        <strong id="tablet-count">0</strong>
+        <span class="metric-sub">zarejestrowane</span>
+      </article>
+      <article class="card metric-card">
+        <span class="metric-label">Online</span>
+        <strong id="online-count">0</strong>
+        <span class="metric-sub">aktywnych</span>
+      </article>
+      <article class="card metric-card">
+        <span class="metric-label">WebSocket</span>
+        <strong id="ws-status">...</strong>
+        <span class="metric-sub">kanal live</span>
+      </article>
+      <article class="card metric-card">
+        <span class="metric-label">Konfiguracja</span>
+        <strong id="tile-count">0</strong>
+        <span class="metric-sub">kafelkow</span>
+      </article>
+    </section>
+
+    <section class="card pairing-card" id="pairing-card" hidden>
+      <div>
+        <h2>Kod parowania</h2>
+        <p>Wpisz ten kod w aplikacji Android na tablecie. Kod jest jednorazowy i wygasa automatycznie.</p>
+      </div>
+      <div class="pairing-code" id="pairing-code">------</div>
+      <img class="pairing-qr" id="pairing-qr" alt="QR parowania tabletu" />
+      <div class="pairing-expiry" id="pairing-expiry"></div>
+    </section>
+
+    <section class="section-header">
+      <div>
+        <h2>Tablety</h2>
+        <p>Stan wallpaneli: online, bateria, ladowanie, IP, ekran i wersja aplikacji.</p>
+      </div>
+    </section>
+    <section class="tablet-grid" id="tablet-grid"></section>
+    <p class="empty-state" id="tablet-empty">Brak sparowanych tabletow.</p>
+
+    <section class="grid two-columns">
+      <article class="card">
+        <div class="card-header">
+          <div>
+            <h2>Konfiguracja dashboardu</h2>
+            <p>Aktualny JSON wysylany do Android APK.</p>
+          </div>
+          <button class="btn-ghost" id="reset-config-btn" type="button">Reset demo</button>
+        </div>
+        <pre id="config-json" class="json-box">Ladowanie...</pre>
+      </article>
+
+      <article class="card">
+        <h2>Diagnostyka</h2>
+        <dl class="diagnostics">
+          <div><dt>API</dt><dd id="api-status">sprawdzanie</dd></div>
+          <div><dt>Ostatnia aktualizacja</dt><dd id="last-refresh">-</dd></div>
+          <div><dt>Ostatnie zdarzenie WS</dt><dd id="last-ws-event">-</dd></div>
+        </dl>
+        <div class="log" id="event-log"></div>
+      </article>
+    </section>
+  </main>
+
+  <script src="{{ base_path }}/static/app.js?v=0.1.0"></script>
+</body>
+</html>

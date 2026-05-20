@@ -1,0 +1,13 @@
+configuration:
+  public_base_url:
+    name: Public base URL
+    description: Optional add-on URL visible to tablets outside Ingress.
+  pairing_code_ttl_seconds:
+    name: Pairing code lifetime
+    description: Number of seconds a one-time tablet pairing code remains valid.
+  telemetry_stale_seconds:
+    name: Telemetry stale timeout
+    description: Number of seconds after which a tablet without telemetry is considered offline.
+  allow_demo_config_reset:
+    name: Allow demo config reset
+    description: Enables the endpoint that resets the mocked dashboard configuration.

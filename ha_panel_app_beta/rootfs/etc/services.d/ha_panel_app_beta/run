@@ -1,0 +1,17 @@
+#!/usr/bin/with-contenv bashio
+# ==============================================================================
+# HA Panel App - service launcher
+# ==============================================================================
+
+bashio::log.info "HA Panel App starting..."
+
+export HA_PANEL_PORT="8097"
+export HA_PANEL_DATA_DIR="/data"
+export HA_PANEL_PUBLIC_BASE_URL="$(bashio::config 'public_base_url')"
+export HA_PANEL_PAIRING_TTL="$(bashio::config 'pairing_code_ttl_seconds')"
+export HA_PANEL_TELEMETRY_STALE_SECONDS="$(bashio::config 'telemetry_stale_seconds')"
+export HA_PANEL_ALLOW_DEMO_RESET="$(bashio::config 'allow_demo_config_reset')"
+export HA_PANEL_SUPERVISOR_TOKEN="${SUPERVISOR_TOKEN}"
+
+bashio::log.info "Launching HA Panel App Beta on port ${HA_PANEL_PORT}"
+exec uvicorn main:app --host 0.0.0.0 --port "${HA_PANEL_PORT}"

@@ -1,0 +1,13 @@
+configuration:
+  public_base_url:
+    name: Publiczny URL
+    description: Opcjonalny adres add-onu widoczny dla tabletow spoza Ingress.
+  pairing_code_ttl_seconds:
+    name: Czas waznosci kodu parowania
+    description: Ile sekund wazny jest jednorazowy kod parowania tabletu.
+  telemetry_stale_seconds:
+    name: Czas wygasniecia telemetrii
+    description: Po ilu sekundach bez raportu tablet jest uznawany za offline.
+  allow_demo_config_reset:
+    name: Pozwol resetowac konfiguracje demo
+    description: Wlacza endpoint resetu mockowanej konfiguracji dashboardu.
