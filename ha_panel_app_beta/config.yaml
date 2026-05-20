@@ -1,5 +1,5 @@
 name: "HA Panel App Beta"
-version: "0.1.0"
+version: "0.1.1"
 slug: ha_panel_app_beta
 description: "Wersja beta backendu konfiguracyjnego i kontrolnego dla natywnego wallpanelu Android Home Assistant."
 url: "https://github.com/GwiezdnySzeryf/Gwiezdny-Szeryf-s-HA-Apps"
@@ -12,14 +12,14 @@ hassio_api: true
 homeassistant_api: true
 
 ingress: true
-ingress_port: 8097
+ingress_port: 8197
 panel_icon: mdi:tablet-dashboard
 panel_title: HA Panel Beta
 
 ports:
-  8097/tcp: 8097
+  8197/tcp: 8197
 ports_description:
-  8097/tcp: "API i panel WWW HA Panel App Beta, wymagane dla tabletow spoza Ingress"
+  8197/tcp: "API i panel WWW HA Panel App Beta, wymagane dla tabletow spoza Ingress"
 
 options:
   public_base_url: ""
@@ -33,5 +33,5 @@ schema:
   telemetry_stale_seconds: "int(30,3600)"
   allow_demo_config_reset: bool
 
-watchdog: "http://[HOST]:[PORT:8097]/health"
+watchdog: "http://[HOST]:[PORT:8197]/health"
 timeout: 10

@@ -46,7 +46,7 @@ class Settings:
 def load_settings() -> Settings:
     return Settings(
         data_dir=Path(os.environ.get("HA_PANEL_DATA_DIR", "/tmp/ha-panel-app")),
-        port=int(os.environ.get("HA_PANEL_PORT", "8098")),
+        port=int(os.environ.get("HA_PANEL_PORT", "8197")),
         public_base_url=os.environ.get("HA_PANEL_PUBLIC_BASE_URL", ""),
         pairing_code_ttl_seconds=int(os.environ.get("HA_PANEL_PAIRING_TTL", "600")),
         telemetry_stale_seconds=int(os.environ.get("HA_PANEL_TELEMETRY_STALE_SECONDS", "120")),
