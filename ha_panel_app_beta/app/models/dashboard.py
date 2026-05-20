@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 
 class DashboardConfig(BaseModel):
     version: int = 1
+    layout: dict[str, Any] = Field(default_factory=dict)
     appearance: dict[str, Any] = Field(default_factory=dict)
     theme: dict[str, Any] = Field(default_factory=dict)
     tileAppearance: dict[str, Any] = Field(default_factory=dict)
@@ -16,6 +17,13 @@ class DashboardConfig(BaseModel):
 
 def default_dashboard_config() -> DashboardConfig:
     return DashboardConfig(
+        layout={
+            "columns": 6,
+            "minColumns": 2,
+            "maxColumns": 10,
+            "rowHeight": 172,
+            "compactTiles": False,
+        },
         appearance={
             "themeMode": "system",
             "materialYou": True,
