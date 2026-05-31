@@ -23,7 +23,10 @@ MAX_HISTORY_EVENTS = 200
 
 DEFAULT_OPTIONS = {
     "camera_entity": "camera.front_door",
+    "camera_source_mode": "auto",
     "camera_rtsp_url": "",
+    "auto_open_call": True,
+    "confirm_entry_actions": True,
     "doorbell_entity": "binary_sensor.front_door_ding",
     "gate_action": "button.open_gate",
     "gate_state": "binary_sensor.gate_open",
@@ -94,7 +97,7 @@ def save_user_config(config: dict[str, Any]) -> dict[str, Any]:
         except (OSError, json.JSONDecodeError):
             current_config = {}
 
-    allowed_keys = set(DEFAULT_OPTIONS) | {"light_action", "camera_rtsp_url"}
+    allowed_keys = set(DEFAULT_OPTIONS) | {"light_action", "camera_rtsp_url", "camera_source_mode", "auto_open_call", "confirm_entry_actions"}
     clean_config = {key: value for key, value in config.items() if key in allowed_keys}
     current_config.update(clean_config)
     USER_CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)

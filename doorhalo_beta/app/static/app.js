@@ -33,6 +33,15 @@ const translations = {
     "settings.camera": "Kamera",
     "settings.cameraRtsp": "Adres RTSP kamery",
     "settings.cameraRtspHint": "RTSP jest zapisywany do przyszłego adaptera. Przeglądarka nie odtwarza RTSP bezpośrednio, więc obraz na żywo nadal wymaga HA stream, WebRTC albo go2rtc.",
+    "settings.cameraSource": "Tryb podglądu kamery",
+    "settings.cameraSourceAuto": "Auto: stream, potem snapshot",
+    "settings.cameraSourceHa": "Home Assistant stream",
+    "settings.cameraSourceSnapshot": "Snapshot co sekundę",
+    "settings.cameraSourceHint": "Jeśli obraz live jest niestabilny, wybierz snapshot co sekundę.",
+    "settings.autoOpenCall": "Otwieraj ekran dzwonka automatycznie",
+    "settings.autoOpenCallHint": "Po wykryciu stanu ON na encji dzwonka Doorhalo przełączy się na ekran połączenia.",
+    "settings.confirmActions": "Potwierdzaj otwieranie bramy/furtki",
+    "settings.confirmActionsHint": "Dodatkowe zabezpieczenie przed przypadkowym kliknięciem.",
     "settings.doorbell": "Dzwonek",
     "settings.gate": "Brama",
     "settings.door": "Furtka",
@@ -69,6 +78,7 @@ const translations = {
     "toast.unmuted": "Dzwonek aktywny",
     "toast.actionFailed": "Akcja Home Assistant nie powiodła się",
     "toast.snapshotFailed": "Nie udało się pobrać snapshotu",
+    "confirm.entryAction": "Na pewno wykonać akcję: {action}?",
     "state.closedGate": "Zamknięta",
     "state.openGate": "Otwarta",
     "state.closedWicket": "Zamknięta",
@@ -171,6 +181,15 @@ const translations = {
     "settings.camera": "Camera",
     "settings.cameraRtsp": "Camera RTSP address",
     "settings.cameraRtspHint": "RTSP is saved for a future adapter. Browsers do not play RTSP directly, so live video still requires HA stream, WebRTC, or go2rtc.",
+    "settings.cameraSource": "Camera preview mode",
+    "settings.cameraSourceAuto": "Auto: stream, then snapshot",
+    "settings.cameraSourceHa": "Home Assistant stream",
+    "settings.cameraSourceSnapshot": "Snapshot every second",
+    "settings.cameraSourceHint": "If live video is unstable, choose snapshot every second.",
+    "settings.autoOpenCall": "Open call screen automatically",
+    "settings.autoOpenCallHint": "When the doorbell entity turns ON, Doorhalo switches to the call screen.",
+    "settings.confirmActions": "Confirm gate/wicket actions",
+    "settings.confirmActionsHint": "Extra protection against accidental taps.",
     "settings.doorbell": "Doorbell",
     "settings.gate": "Gate",
     "settings.door": "Wicket",
@@ -207,6 +226,7 @@ const translations = {
     "toast.unmuted": "Doorbell active",
     "toast.actionFailed": "Home Assistant action failed",
     "toast.snapshotFailed": "Could not download snapshot",
+    "confirm.entryAction": "Run action: {action}?",
     "state.closedGate": "Closed",
     "state.openGate": "Open",
     "state.closedWicket": "Closed",
@@ -409,6 +429,8 @@ document.querySelectorAll("[data-entry-command]").forEach((button) => {
   const dashboardState = command === "gate" ? dashboardGateState : dashboardWicketState;
 
   button.addEventListener("click", () => {
+    if (!confirmEntryAction(command)) return;
+
     entryActions.classList.add("open");
     splitOptions.setAttribute("aria-hidden", "false");
     entryActionsToggle.setAttribute("aria-expanded", "true");
@@ -502,11 +524,14 @@ document.querySelectorAll("[data-call-action]").forEach((button) => {
     }
 
     if (action === "open-wicket" || action === "open-gate") {
+      const command = action === "open-wicket" ? "wicket" : "gate";
+      if (!confirmEntryAction(command)) return;
+
       callCard.dataset.callState = "opened";
       const key = action === "open-wicket" ? "call.openedWicket" : "call.openedGate";
       callResult.textContent = translations[currentLanguage][key];
       showToast(key);
-      callDoorhaloAction(action === "open-wicket" ? "wicket" : "gate").catch(() => showToast("toast.actionFailed"));
+      callDoorhaloAction(command).catch(() => showToast("toast.actionFailed"));
     }
   });
 });
@@ -524,6 +549,10 @@ const muteDoorbellToggle = document.getElementById("muteDoorbellToggle");
 const muteStateText = document.getElementById("muteStateText");
 const appToast = document.getElementById("appToast");
 const cameraRtspInput = document.getElementById("cameraRtspInput");
+const cameraSourceModeSelect = document.getElementById("cameraSourceModeSelect");
+const autoOpenCallToggle = document.getElementById("autoOpenCallToggle");
+const confirmActionsToggle = document.getElementById("confirmActionsToggle");
+const exportHistoryButton = document.getElementById("exportHistoryButton");
 let toastTimeout;
 
 function showToast(messageKey) {
@@ -550,6 +579,14 @@ async function callDoorhaloAction(action) {
   const result = await doorhaloFetch(doorhaloPath(`/api/actions/${action}`), { method: "POST" });
   if (result.status) applyDoorhaloStatus(result.status);
   return result;
+}
+
+function confirmEntryAction(action) {
+  const options = currentDoorhaloStatus?.options || {};
+  if (!["gate", "wicket"].includes(action) || options.confirm_entry_actions === false) return true;
+  const label = action === "gate" ? translations[currentLanguage]["action.gate"] : translations[currentLanguage]["action.door"];
+  const message = translations[currentLanguage]["confirm.entryAction"].replace("{action}", label);
+  return window.confirm(message);
 }
 
 async function saveDoorhaloOptions(values) {
@@ -826,6 +863,10 @@ function attachCameraStream(frame, streamUrl) {
   return true;
 }
 
+function shouldUseCameraStream(mode) {
+  return mode === "auto" || mode === "ha_stream";
+}
+
 function attachHlsCameraStream(frame, streamUrl) {
   const video = document.createElement("video");
   video.className = "camera-live-video";
@@ -876,18 +917,20 @@ function setCameraPreview(entity) {
   const status = document.getElementById("callVideoStatus");
   const encodedEntityId = entity?.entity_id ? encodeURIComponent(entity.entity_id) : "";
   const snapshotUrl = cameraPicture || (encodedEntityId ? doorhaloPath(`/api/camera/${encodedEntityId}/snapshot`) : "");
+  const cameraMode = currentDoorhaloStatus?.options?.camera_source_mode || "auto";
   const streamUrl = encodedEntityId && cameraToken
     ? `/api/camera_proxy_stream/${encodedEntityId}?token=${encodeURIComponent(cameraToken)}`
     : (encodedEntityId ? doorhaloPath(`/api/camera/${encodedEntityId}/stream`) : "");
+  const effectiveStreamUrl = shouldUseCameraStream(cameraMode) ? streamUrl : "";
 
   if (!entity?.available) {
     stopCameraStreams();
     stopCameraSnapshotRefresh();
     setCameraLiveState("offline");
-  } else if (streamUrl) {
-    if (streamUrl !== currentCameraStreamUrl) {
+  } else if (effectiveStreamUrl) {
+    if (effectiveStreamUrl !== currentCameraStreamUrl) {
       stopCameraStreams();
-      currentCameraStreamUrl = streamUrl;
+      currentCameraStreamUrl = effectiveStreamUrl;
       setCameraLiveState("loadingLive");
     }
   } else {
@@ -903,7 +946,7 @@ function setCameraPreview(entity) {
       return;
     }
 
-    if (streamUrl && !frame.querySelector(".camera-live-image, .camera-live-video") && !attachCameraStream(frame, streamUrl)) {
+    if (effectiveStreamUrl && !frame.querySelector(".camera-live-image, .camera-live-video") && !attachCameraStream(frame, effectiveStreamUrl)) {
       setCameraLiveState("snapshot");
     }
   });
@@ -1044,6 +1087,11 @@ function applyDoorhaloStatus(status) {
   if (cameraRtspInput && document.activeElement !== cameraRtspInput) {
     cameraRtspInput.value = options.camera_rtsp_url || "";
   }
+  if (cameraSourceModeSelect && document.activeElement !== cameraSourceModeSelect) {
+    cameraSourceModeSelect.value = options.camera_source_mode || "auto";
+  }
+  if (autoOpenCallToggle) autoOpenCallToggle.checked = options.auto_open_call !== false;
+  if (confirmActionsToggle) confirmActionsToggle.checked = options.confirm_entry_actions !== false;
   setFeatureToggle("camera", Boolean(options.camera_entity));
   setFeatureToggle("doorbell", Boolean(options.doorbell_entity));
   setFeatureToggle("gate", Boolean(options.gate_action));
@@ -1095,6 +1143,24 @@ async function loadDoorhaloHistory() {
   }
 }
 
+async function exportDoorhaloHistory() {
+  try {
+    const events = await doorhaloFetch(doorhaloPath("/api/history?limit=200"));
+    const blob = new Blob([JSON.stringify(events, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `doorhalo-history-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.warn("Doorhalo history export failed", error);
+    showToast("toast.actionFailed");
+  }
+}
+
 function connectDoorhaloSocket() {
   const protocol = window.location.protocol === "https:" ? "wss" : "ws";
   const socket = new WebSocket(`${protocol}://${window.location.host}${doorhaloPath("/api/ws")}`);
@@ -1107,6 +1173,16 @@ function connectDoorhaloSocket() {
     }
 
     if (message.type === "state_changed") {
+      const options = currentDoorhaloStatus?.options || {};
+      if (options.auto_open_call !== false && message.entity?.entity_id === options.doorbell_entity && message.entity?.state === "on") {
+        resetCallState();
+        activateScreen("call");
+        window.setTimeout(() => {
+          if (callCard?.dataset.callState === "incoming") {
+            callResult.textContent = translations[currentLanguage]["history.missed"];
+          }
+        }, 30000);
+      }
       refreshDoorhaloStatus();
     }
   });
@@ -1187,6 +1263,21 @@ document.getElementById("recentEventList")?.addEventListener("click", (event) =>
 cameraRtspInput?.addEventListener("change", () => {
   saveDoorhaloOptions({ camera_rtsp_url: cameraRtspInput.value.trim() }).catch(() => showToast("toast.actionFailed"));
 });
+
+cameraSourceModeSelect?.addEventListener("change", () => {
+  stopCameraStreams();
+  saveDoorhaloOptions({ camera_source_mode: cameraSourceModeSelect.value }).catch(() => showToast("toast.actionFailed"));
+});
+
+autoOpenCallToggle?.addEventListener("change", () => {
+  saveDoorhaloOptions({ auto_open_call: autoOpenCallToggle.checked }).catch(() => showToast("toast.actionFailed"));
+});
+
+confirmActionsToggle?.addEventListener("change", () => {
+  saveDoorhaloOptions({ confirm_entry_actions: confirmActionsToggle.checked }).catch(() => showToast("toast.actionFailed"));
+});
+
+exportHistoryButton?.addEventListener("click", exportDoorhaloHistory);
 
 document.querySelectorAll("[data-camera-fullscreen]").forEach((button) => {
   button.addEventListener("click", () => {

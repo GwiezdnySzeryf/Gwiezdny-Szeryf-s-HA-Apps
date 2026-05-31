@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=0.1.1" />
+    <link rel="stylesheet" href="styles.css?v=0.0.2" />
   </head>
   <body>
     <div class="app-shell">
@@ -154,7 +154,7 @@
 
         <section class="screen" id="history">
           <article class="panel wide-panel">
-            <div class="panel-heading"><h2 data-i18n="history.title">Historia aktywności</h2><button data-i18n="history.export">Eksport</button></div>
+            <div class="panel-heading"><h2 data-i18n="history.title">Historia aktywności</h2><button id="exportHistoryButton" data-i18n="history.export">Eksport</button></div>
             <div class="history-list" id="historyList">
               <div class="history-item"><span class="mdi mdi-doorbell-video"></span><div><strong data-i18n="history.dingAnswered">Dzwonek odebrany</strong><small data-i18n="history.dingAnsweredHint">Reolink Doorbell, naciśnij i mów</small></div><time data-i18n="time.today1432">Dziś 14:32</time></div>
               <div class="history-item"><span class="mdi mdi-phone-missed"></span><div><strong data-i18n="history.missed">Połączenie nieodebrane</strong><small data-i18n="history.missedHint">Dahua VTO, brak odpowiedzi po 30 s</small></div><time data-i18n="time.today1202">Dziś 12:02</time></div>
@@ -196,6 +196,16 @@
                 <span data-i18n="settings.cameraRtsp">Adres RTSP kamery</span>
                 <input id="cameraRtspInput" type="text" inputmode="url" placeholder="rtsp://user:haslo@192.168.1.10:554/stream1" autocomplete="off" />
                 <small data-i18n="settings.cameraRtspHint">RTSP jest zapisywany do przyszłego adaptera. Przeglądarka nie odtwarza RTSP bezpośrednio, więc obraz na żywo nadal wymaga HA stream, WebRTC albo go2rtc.</small>
+              </label>
+
+              <label class="rtsp-setting">
+                <span data-i18n="settings.cameraSource">Tryb podglądu kamery</span>
+                <select id="cameraSourceModeSelect">
+                  <option value="auto" data-i18n="settings.cameraSourceAuto">Auto: stream, potem snapshot</option>
+                  <option value="ha_stream" data-i18n="settings.cameraSourceHa">Home Assistant stream</option>
+                  <option value="snapshot" data-i18n="settings.cameraSourceSnapshot">Snapshot co sekundę</option>
+                </select>
+                <small data-i18n="settings.cameraSourceHint">Jeśli obraz live jest niestabilny, wybierz snapshot co sekundę.</small>
               </label>
 
               <!-- DZWONEK -->
@@ -398,6 +408,14 @@
                 <div><strong data-i18n="settings.darkMode">Tryb ciemny</strong><small data-i18n="settings.darkModeHint">Podgląd docelowego motywu HA.</small></div>
                 <label class="switch"><input id="darkModeToggle" type="checkbox" /><span></span></label>
               </div>
+              <div class="toggle-row">
+                <div><strong data-i18n="settings.autoOpenCall">Otwieraj ekran dzwonka automatycznie</strong><small data-i18n="settings.autoOpenCallHint">Po wykryciu stanu ON na encji dzwonka Doorhalo przełączy się na ekran połączenia.</small></div>
+                <label class="switch"><input id="autoOpenCallToggle" type="checkbox" /><span></span></label>
+              </div>
+              <div class="toggle-row">
+                <div><strong data-i18n="settings.confirmActions">Potwierdzaj otwieranie bramy/furtki</strong><small data-i18n="settings.confirmActionsHint">Dodatkowe zabezpieczenie przed przypadkowym kliknięciem.</small></div>
+                <label class="switch"><input id="confirmActionsToggle" type="checkbox" /><span></span></label>
+              </div>
               <button class="info-button" id="openInfoButton"><span class="mdi mdi-information-outline"></span><span data-i18n="settings.infoButton">Informacje o aplikacji</span></button>
             </article>
           </div>
@@ -428,6 +446,6 @@
       <div class="toast" id="appToast" role="status" aria-live="polite"></div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.18/dist/hls.min.js"></script>
-    <script src="app.js?v=0.1.1"></script>
+    <script src="app.js?v=0.0.2"></script>
   </body>
 </html>
