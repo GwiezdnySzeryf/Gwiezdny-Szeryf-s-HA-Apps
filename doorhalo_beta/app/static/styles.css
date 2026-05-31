@@ -441,6 +441,9 @@ body.dark-theme .ha-combo-dropdown { background: var(--surface-low); }
 
 /* Talk Mode warnings & styles */
 .talk-mode-hint { margin-top: 14px; padding: 12px; border-radius: 16px; background: var(--surface-low); font-size: 13px; color: var(--muted); line-height: 1.45; }
+.talk-status { margin-top: 10px; padding: 9px 11px; border-radius: 12px; background: var(--surface-container); color: var(--primary-deep); font-weight: 800; }
+.talk-status.success { background: #d8f5e6; color: var(--success); }
+.talk-status.warning { background: #fff4ce; color: #795900; }
 .warning-alert { display: flex; gap: 8px; margin-top: 10px; padding: 10px; border-radius: 12px; background: rgba(186, 26, 26, 0.08); color: var(--danger); font-weight: 600; font-size: 12px; align-items: start; }
 .warning-alert .mdi { font-size: 18px; margin-top: -1px; }
 

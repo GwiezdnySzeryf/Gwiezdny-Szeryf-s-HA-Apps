@@ -2,6 +2,7 @@ import asyncio
 import contextlib
 import json
 import os
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -20,6 +21,7 @@ HISTORY_PATH = Path("/data/doorhalo_history.json")
 HA_REST_URL = os.environ.get("DOORHALO_HA_REST_URL", "http://supervisor/core/api")
 HA_WS_URL = os.environ.get("DOORHALO_HA_WS_URL", "ws://supervisor/core/websocket")
 MAX_HISTORY_EVENTS = 200
+ACTIVE_TALK_SESSIONS: dict[str, dict[str, Any]] = {}
 
 DEFAULT_OPTIONS = {
     "camera_entity": "camera.front_door",
@@ -27,6 +29,10 @@ DEFAULT_OPTIONS = {
     "camera_rtsp_url": "",
     "auto_open_call": True,
     "confirm_entry_actions": True,
+    "talk_enabled": True,
+    "talk_mode": "push",
+    "talk_adapter": "local_microphone",
+    "talk_target_url": "",
     "doorbell_entity": "binary_sensor.front_door_ding",
     "gate_action": "button.open_gate",
     "gate_state": "binary_sensor.gate_open",
@@ -97,7 +103,7 @@ def save_user_config(config: dict[str, Any]) -> dict[str, Any]:
         except (OSError, json.JSONDecodeError):
             current_config = {}
 
-    allowed_keys = set(DEFAULT_OPTIONS) | {"light_action", "camera_rtsp_url", "camera_source_mode", "auto_open_call", "confirm_entry_actions"}
+    allowed_keys = set(DEFAULT_OPTIONS) | {"light_action", "camera_rtsp_url", "camera_source_mode", "auto_open_call", "confirm_entry_actions", "talk_enabled", "talk_mode", "talk_adapter", "talk_target_url"}
     clean_config = {key: value for key, value in config.items() if key in allowed_keys}
     current_config.update(clean_config)
     USER_CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -244,6 +250,7 @@ async def build_status() -> dict[str, Any]:
         "options": options,
         "entities": entities,
         "actions": actions,
+        "talk": build_talk_status(options),
         "history": load_history(6),
         "config_health": {
             "ok": not missing_entities and not missing_actions,
@@ -269,6 +276,26 @@ def service_for_action(entity_id: str, preferred: str | None = None) -> tuple[st
     if not service:
         raise HTTPException(status_code=400, detail=f"Unsupported action domain: {domain}")
     return domain, service
+
+
+def build_talk_status(options: dict[str, Any] | None = None) -> dict[str, Any]:
+    options = options or load_options()
+    adapter = options.get("talk_adapter") or "disabled"
+    return {
+        "enabled": options.get("talk_enabled", True),
+        "mode": options.get("talk_mode", "push"),
+        "adapter": adapter,
+        "target_configured": bool(options.get("talk_target_url")),
+        "active_sessions": len(ACTIVE_TALK_SESSIONS),
+        "audio_transport": "browser_microphone_only" if adapter == "local_microphone" else "adapter_required",
+    }
+
+
+def get_talk_session(session_id: str) -> dict[str, Any]:
+    session = ACTIVE_TALK_SESSIONS.get(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Talk session not found")
+    return session
 
 
 async def call_service(entity_id: str, preferred: str | None = None) -> dict[str, Any]:
@@ -347,6 +374,46 @@ async def run_action(target: str) -> dict[str, Any]:
     append_history("action", f"Action: {target}", entity_id, f"Called {result['domain']}.{result['service']}")
     result["status"] = await build_status()
     return result
+
+
+@app.post("/api/talk/start")
+async def start_talk_session(payload: dict[str, Any] | None = None) -> dict[str, Any]:
+    options = load_options()
+    if not options.get("talk_enabled", True):
+        raise HTTPException(status_code=403, detail="Two-way talk is disabled")
+
+    requested_mode = (payload or {}).get("mode") or options.get("talk_mode", "push")
+    if requested_mode not in {"push", "duplex"}:
+        raise HTTPException(status_code=400, detail="Unsupported talk mode")
+
+    adapter = options.get("talk_adapter") or "local_microphone"
+    session = {
+        "id": uuid.uuid4().hex,
+        "mode": requested_mode,
+        "adapter": adapter,
+        "started_at": datetime.now(timezone.utc).isoformat(),
+        "ptt_active": False,
+        "transport_ready": adapter != "local_microphone" and bool(options.get("talk_target_url")),
+    }
+    ACTIVE_TALK_SESSIONS[session["id"]] = session
+    append_history("talk", "Talk session started", None, f"Mode: {requested_mode}, adapter: {adapter}")
+    return {"ok": True, "session": session, "talk": build_talk_status(options)}
+
+
+@app.post("/api/talk/{session_id}/ptt")
+async def set_push_to_talk(session_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+    session = get_talk_session(session_id)
+    session["ptt_active"] = bool(payload.get("active"))
+    session["updated_at"] = datetime.now(timezone.utc).isoformat()
+    return {"ok": True, "session": session, "talk": build_talk_status()}
+
+
+@app.post("/api/talk/{session_id}/stop")
+async def stop_talk_session(session_id: str) -> dict[str, Any]:
+    session = get_talk_session(session_id)
+    ACTIVE_TALK_SESSIONS.pop(session_id, None)
+    append_history("talk", "Talk session ended", None, f"Mode: {session.get('mode')}, adapter: {session.get('adapter')}")
+    return {"ok": True, "session": session, "talk": build_talk_status()}
 
 
 @app.websocket("/api/ws")

@@ -42,6 +42,15 @@ const translations = {
     "settings.autoOpenCallHint": "Po wykryciu stanu ON na encji dzwonka Doorhalo przełączy się na ekran połączenia.",
     "settings.confirmActions": "Potwierdzaj otwieranie bramy/furtki",
     "settings.confirmActionsHint": "Dodatkowe zabezpieczenie przed przypadkowym kliknięciem.",
+    "settings.talkEnabled": "Włącz rozmowę dwukierunkową",
+    "settings.talkEnabledHint": "Pierwszy etap uruchamia mikrofon w przeglądarce. Wysyłka audio do urządzenia wymaga adaptera.",
+    "settings.talkAdapter": "Adapter rozmowy",
+    "settings.talkAdapterLocal": "Tylko mikrofon lokalny",
+    "settings.talkAdapterReolink": "Reolink",
+    "settings.talkAdapterDahua": "Dahua VTO",
+    "settings.talkAdapterSip": "SIP/WebRTC",
+    "settings.talkTarget": "Adres docelowy rozmowy",
+    "settings.talkTargetHint": "Opcjonalne miejsce na adres przyszłego adaptera, np. SIP/WebRTC/go2rtc.",
     "settings.doorbell": "Dzwonek",
     "settings.gate": "Brama",
     "settings.door": "Furtka",
@@ -78,6 +87,8 @@ const translations = {
     "toast.unmuted": "Dzwonek aktywny",
     "toast.actionFailed": "Akcja Home Assistant nie powiodła się",
     "toast.snapshotFailed": "Nie udało się pobrać snapshotu",
+    "toast.microphoneDenied": "Brak dostępu do mikrofonu",
+    "toast.talkFailed": "Nie udało się uruchomić rozmowy",
     "confirm.entryAction": "Na pewno wykonać akcję: {action}?",
     "state.closedGate": "Zamknięta",
     "state.openGate": "Otwarta",
@@ -97,6 +108,11 @@ const translations = {
     "talk.holdLabel": "Przytrzymaj i mów",
     "talk.toggleLabelOn": "Mikrofon włączony",
     "talk.toggleLabelOff": "Włącz mikrofon",
+    "talk.statusReady": "Mikrofon gotowy",
+    "talk.statusDisabled": "Rozmowa wyłączona",
+    "talk.statusLocalOnly": "Mikrofon działa lokalnie. Adapter urządzenia nie jest jeszcze podłączony.",
+    "talk.statusLive": "Mów teraz",
+    "talk.statusIdle": "Mikrofon nieaktywny",
     "app.type": "Komunikator Ingress",
     "sidebar.ingressActive": "HA Ingress aktywny",
     "sidebar.ingressHint": "Lokalnie i zdalnie przez HA",
@@ -190,6 +206,15 @@ const translations = {
     "settings.autoOpenCallHint": "When the doorbell entity turns ON, Doorhalo switches to the call screen.",
     "settings.confirmActions": "Confirm gate/wicket actions",
     "settings.confirmActionsHint": "Extra protection against accidental taps.",
+    "settings.talkEnabled": "Enable two-way talk",
+    "settings.talkEnabledHint": "The first stage enables the browser microphone. Sending audio to the device requires an adapter.",
+    "settings.talkAdapter": "Talk adapter",
+    "settings.talkAdapterLocal": "Local microphone only",
+    "settings.talkAdapterReolink": "Reolink",
+    "settings.talkAdapterDahua": "Dahua VTO",
+    "settings.talkAdapterSip": "SIP/WebRTC",
+    "settings.talkTarget": "Talk target address",
+    "settings.talkTargetHint": "Optional place for a future adapter address, for example SIP/WebRTC/go2rtc.",
     "settings.doorbell": "Doorbell",
     "settings.gate": "Gate",
     "settings.door": "Wicket",
@@ -226,6 +251,8 @@ const translations = {
     "toast.unmuted": "Doorbell active",
     "toast.actionFailed": "Home Assistant action failed",
     "toast.snapshotFailed": "Could not download snapshot",
+    "toast.microphoneDenied": "Microphone access denied",
+    "toast.talkFailed": "Could not start talk",
     "confirm.entryAction": "Run action: {action}?",
     "state.closedGate": "Closed",
     "state.openGate": "Open",
@@ -245,6 +272,11 @@ const translations = {
     "talk.holdLabel": "Hold and talk",
     "talk.toggleLabelOn": "Microphone on",
     "talk.toggleLabelOff": "Turn on mic",
+    "talk.statusReady": "Microphone ready",
+    "talk.statusDisabled": "Talk disabled",
+    "talk.statusLocalOnly": "Microphone works locally. Device adapter is not connected yet.",
+    "talk.statusLive": "Speak now",
+    "talk.statusIdle": "Microphone idle",
     "app.type": "Ingress intercom",
     "sidebar.ingressActive": "HA Ingress active",
     "sidebar.ingressHint": "Locally and remotely via HA",
@@ -500,20 +532,27 @@ function resetCallState() {
 }
 
 document.querySelectorAll("[data-call-action]").forEach((button) => {
-  button.addEventListener("click", () => {
+  button.addEventListener("click", async () => {
     const action = button.dataset.callAction;
 
     if (action === "answer") {
-      callCard.dataset.callState = "answered";
-      callActions.style.display = "none";
-      callActiveTools.classList.add("active");
-      callActiveTools.setAttribute("aria-hidden", "false");
-      callResult.textContent = "";
-      setCallCopy("call.answeredEyebrow", "call.answeredTitle", "call.answeredSubtitle");
+      try {
+        await startTalkSession();
+        callCard.dataset.callState = "answered";
+        callActions.style.display = "none";
+        callActiveTools.classList.add("active");
+        callActiveTools.setAttribute("aria-hidden", "false");
+        callResult.textContent = translations[currentLanguage]["talk.statusReady"];
+        setCallCopy("call.answeredEyebrow", "call.answeredTitle", "call.answeredSubtitle");
+      } catch (error) {
+        console.warn("Doorhalo talk start failed", error);
+        showToast(error?.name === "NotAllowedError" ? "toast.microphoneDenied" : "toast.talkFailed");
+      }
       return;
     }
 
     if (action === "decline" || action === "end") {
+      stopTalkSession().catch(() => undefined);
       callCard.dataset.callState = "declined";
       callActions.style.display = "none";
       callActiveTools.classList.remove("active");
@@ -552,6 +591,10 @@ const cameraRtspInput = document.getElementById("cameraRtspInput");
 const cameraSourceModeSelect = document.getElementById("cameraSourceModeSelect");
 const autoOpenCallToggle = document.getElementById("autoOpenCallToggle");
 const confirmActionsToggle = document.getElementById("confirmActionsToggle");
+const talkEnabledToggle = document.getElementById("talkEnabledToggle");
+const talkAdapterSelect = document.getElementById("talkAdapterSelect");
+const talkTargetInput = document.getElementById("talkTargetInput");
+const talkStatusText = document.getElementById("talkStatusText");
 const exportHistoryButton = document.getElementById("exportHistoryButton");
 let toastTimeout;
 
@@ -991,6 +1034,7 @@ function iconForEvent(type) {
   const icons = {
     action: "mdi mdi-gesture-tap-button",
     doorbell: "mdi mdi-doorbell-video",
+    talk: "mdi mdi-microphone-message",
   };
   return icons[type] || "mdi mdi-history";
 }
@@ -1092,6 +1136,12 @@ function applyDoorhaloStatus(status) {
   }
   if (autoOpenCallToggle) autoOpenCallToggle.checked = options.auto_open_call !== false;
   if (confirmActionsToggle) confirmActionsToggle.checked = options.confirm_entry_actions !== false;
+  if (talkEnabledToggle) talkEnabledToggle.checked = options.talk_enabled !== false;
+  if (talkAdapterSelect && document.activeElement !== talkAdapterSelect) talkAdapterSelect.value = options.talk_adapter || "local_microphone";
+  if (talkTargetInput && document.activeElement !== talkTargetInput) talkTargetInput.value = options.talk_target_url || "";
+  selectedTalkMode = options.talk_mode || selectedTalkMode;
+  updateTalkModeUI();
+  updateTalkStatus(status.talk);
   setFeatureToggle("camera", Boolean(options.camera_entity));
   setFeatureToggle("doorbell", Boolean(options.doorbell_entity));
   setFeatureToggle("gate", Boolean(options.gate_action));
@@ -1277,6 +1327,19 @@ confirmActionsToggle?.addEventListener("change", () => {
   saveDoorhaloOptions({ confirm_entry_actions: confirmActionsToggle.checked }).catch(() => showToast("toast.actionFailed"));
 });
 
+talkEnabledToggle?.addEventListener("change", () => {
+  if (!talkEnabledToggle.checked) stopTalkSession().catch(() => undefined);
+  saveDoorhaloOptions({ talk_enabled: talkEnabledToggle.checked }).catch(() => showToast("toast.actionFailed"));
+});
+
+talkAdapterSelect?.addEventListener("change", () => {
+  saveDoorhaloOptions({ talk_adapter: talkAdapterSelect.value }).catch(() => showToast("toast.actionFailed"));
+});
+
+talkTargetInput?.addEventListener("change", () => {
+  saveDoorhaloOptions({ talk_target_url: talkTargetInput.value.trim() }).catch(() => showToast("toast.actionFailed"));
+});
+
 exportHistoryButton?.addEventListener("click", exportDoorhaloHistory);
 
 document.querySelectorAll("[data-camera-fullscreen]").forEach((button) => {
@@ -1297,6 +1360,9 @@ const talkModeHintText = document.getElementById("talkModeHintText");
 const talkModeWarning = document.getElementById("talkModeWarning");
 
 let selectedTalkMode = "push"; // default
+let talkSessionId = "";
+let talkMediaStream = null;
+let talkPttActive = false;
 
 function setTalkButtonLabel(button, labelKey) {
   const label = button.querySelector("span:not(.mdi)");
@@ -1312,11 +1378,16 @@ if (talkModeSegmented) {
       
       selectedTalkMode = btn.dataset.mode;
       updateTalkModeUI();
+      saveDoorhaloOptions({ talk_mode: selectedTalkMode }).catch(() => showToast("toast.actionFailed"));
     });
   });
 }
 
 function updateTalkModeUI() {
+  talkModeSegmented?.querySelectorAll("button").forEach((button) => {
+    button.classList.toggle("selected", button.dataset.mode === selectedTalkMode);
+  });
+
   if (selectedTalkMode === "push") {
     talkModeHintText.textContent = translations[currentLanguage]["talk.pushHint"];
     talkModeWarning.style.display = "none";
@@ -1338,26 +1409,100 @@ function updateTalkModeUI() {
   }
 }
 
+function updateTalkStatus(talk) {
+  if (!talkStatusText) return;
+  if (!talk?.enabled) {
+    talkStatusText.textContent = translations[currentLanguage]["talk.statusDisabled"];
+    talkStatusText.className = "talk-status warning";
+    return;
+  }
+
+  const isLocalOnly = talk.adapter === "local_microphone" || talk.audio_transport === "browser_microphone_only";
+  talkStatusText.textContent = isLocalOnly
+    ? translations[currentLanguage]["talk.statusLocalOnly"]
+    : translations[currentLanguage]["talk.statusReady"];
+  talkStatusText.className = isLocalOnly ? "talk-status warning" : "talk-status success";
+}
+
+async function startTalkSession() {
+  const options = currentDoorhaloStatus?.options || {};
+  if (options.talk_enabled === false) throw new Error("Talk disabled");
+  if (!navigator.mediaDevices?.getUserMedia) throw new Error("Microphone API unavailable");
+
+  if (!talkMediaStream) {
+    talkMediaStream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+      video: false,
+    });
+  }
+
+  if (!talkSessionId) {
+    const result = await doorhaloFetch(doorhaloPath("/api/talk/start"), {
+      method: "POST",
+      body: JSON.stringify({ mode: selectedTalkMode }),
+    });
+    talkSessionId = result.session?.id || "";
+    updateTalkStatus(result.talk);
+  }
+
+  return talkSessionId;
+}
+
+async function stopTalkSession() {
+  if (talkSessionId) {
+    const sessionId = talkSessionId;
+    talkSessionId = "";
+    await doorhaloFetch(doorhaloPath(`/api/talk/${sessionId}/stop`), { method: "POST" });
+  }
+
+  talkPttActive = false;
+  document.querySelectorAll(".talk-button").forEach((button) => {
+    button.classList.remove("light-on");
+    button.style.boxShadow = "";
+    button.style.background = "";
+  });
+
+  if (talkMediaStream) {
+    talkMediaStream.getTracks().forEach((track) => track.stop());
+    talkMediaStream = null;
+  }
+
+  if (talkStatusText) {
+    talkStatusText.textContent = translations[currentLanguage]["talk.statusIdle"];
+    talkStatusText.className = "talk-status";
+  }
+}
+
+async function setPushToTalk(active) {
+  if (!talkSessionId) await startTalkSession();
+  talkPttActive = active;
+  document.querySelectorAll(".talk-button").forEach((button) => {
+    button.classList.toggle("light-on", active);
+    setTalkButtonLabel(button, active ? "talk.statusLive" : "talk.holdLabel");
+    button.style.boxShadow = active ? "0 0 0 8px rgba(3, 169, 244, 0.35)" : "";
+  });
+  if (talkStatusText) talkStatusText.textContent = translations[currentLanguage][active ? "talk.statusLive" : "talk.statusReady"];
+  await doorhaloFetch(doorhaloPath(`/api/talk/${talkSessionId}/ptt`), {
+    method: "POST",
+    body: JSON.stringify({ active }),
+  });
+}
+
 // Active microphone hold-to-talk & click-to-toggle logic
 document.querySelectorAll(".talk-button").forEach((btn) => {
-  let isRecording = false;
-
   // Touch & hold events for Push-to-talk
   const startRecording = (e) => {
     if (selectedTalkMode !== "push") return;
     e.preventDefault();
-    isRecording = true;
-    btn.classList.add("light-on");
-    setTalkButtonLabel(btn, "action.opening"); // temporary active label for press-to-talk
-    btn.style.boxShadow = "0 0 0 8px rgba(3, 169, 244, 0.35)";
+    setPushToTalk(true).catch((error) => {
+      console.warn("Doorhalo push-to-talk failed", error);
+      showToast(error?.name === "NotAllowedError" ? "toast.microphoneDenied" : "toast.talkFailed");
+    });
   };
 
   const stopRecording = () => {
-    if (selectedTalkMode !== "push" || !isRecording) return;
-    isRecording = false;
-    btn.classList.remove("light-on");
-    setTalkButtonLabel(btn, "talk.holdLabel");
-    btn.style.boxShadow = "";
+    if (selectedTalkMode !== "push" || !talkPttActive) return;
+    setPushToTalk(false).catch(() => undefined);
   };
 
   btn.addEventListener("mousedown", startRecording);
@@ -1366,11 +1511,24 @@ document.querySelectorAll(".talk-button").forEach((btn) => {
   document.addEventListener("touchend", stopRecording);
 
   // Click event for Full-duplex toggle
-  btn.addEventListener("click", () => {
+  btn.addEventListener("click", async () => {
     if (selectedTalkMode !== "duplex") return;
-    const isActive = btn.classList.toggle("light-on");
-    setTalkButtonLabel(btn, isActive ? "talk.toggleLabelOn" : "talk.toggleLabelOff");
-    btn.style.background = isActive ? "#177245" : "";
+    try {
+      if (talkSessionId) {
+        await stopTalkSession();
+        setTalkButtonLabel(btn, "talk.toggleLabelOff");
+        return;
+      }
+
+      await startTalkSession();
+      btn.classList.add("light-on");
+      setTalkButtonLabel(btn, "talk.toggleLabelOn");
+      btn.style.background = "#177245";
+      if (talkStatusText) talkStatusText.textContent = translations[currentLanguage]["talk.statusLive"];
+    } catch (error) {
+      console.warn("Doorhalo duplex talk failed", error);
+      showToast(error?.name === "NotAllowedError" ? "toast.microphoneDenied" : "toast.talkFailed");
+    }
   });
 });
 
