@@ -1,0 +1,43 @@
+name: "Doorhalo Beta"
+version: "0.0.1"
+slug: "doorhalo_beta"
+description: "Beta smart intercom gate entry control with Reolink & Dahua VTO support"
+url: "https://github.com/GwiezdnySzeryf/Gwiezdny-Szeryf-s-HA-Apps"
+arch:
+  - aarch64
+  - amd64
+init: false
+ingress: true
+ingress_port: 8100
+panel_icon: "mdi:doorbell-video"
+panel_title: "Doorhalo Beta"
+homeassistant_api: true
+hassio_api: true
+ports:
+  8100/tcp: 8101
+ports_description:
+  8100/tcp: "Interfejs WWW Doorhalo Beta (host domyślnie 8101; wymagany jeśli chcesz uzyskać dostęp po zewnętrznym IP lub domenie)"
+options:
+  camera_entity: "camera.front_door"
+  camera_rtsp_url: ""
+  doorbell_entity: "binary_sensor.front_door_ding"
+  gate_action: "button.open_gate"
+  gate_state: "binary_sensor.gate_open"
+  wicket_action: "lock.front_door"
+  wicket_state: "binary_sensor.wicket_open"
+  light_action: ""
+  mute_state: "input_boolean.doorhalo_muted"
+  history_enabled: true
+schema:
+  camera_entity: str
+  camera_rtsp_url: str
+  doorbell_entity: str
+  gate_action: str
+  gate_state: str
+  wicket_action: str
+  wicket_state: str
+  light_action: str
+  mute_state: str
+  history_enabled: bool
+watchdog: "http://[HOST]:[PORT:8100]/health"
+timeout: 10

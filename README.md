@@ -22,6 +22,9 @@ A testing version for enthusiasts who want to experience the latest patches and 
 
 A beta backend and Ingress panel for a native Android Home Assistant wallpanel. It handles tablet pairing with QR codes, dashboard configuration, WebSocket updates and tablet telemetry including charging state, battery level, IP address, screen resolution and aspect ratio.
 
+### 🛎️ Doorhalo Beta
+An experimental Home Assistant Ingress intercom panel for camera preview, doorbell call UI, gate and wicket actions, mute state, and future Reolink/Dahua VTO adapters.
+
 ---
 ## Installation
 
@@ -76,6 +79,9 @@ Wersja testowa dla entuzjastów chcących na własnej skórze sprawdzać najnows
 [Więcej info](https://github.com/GwiezdnySzeryf/Gwiezdny-Szeryf-s-HA-Apps/blob/main/ha_panel_app_beta/DOCS.md)
 
 Wersja beta backendu i panelu Ingress dla natywnego wallpanelu Android Home Assistant. Obsluguje parowanie tabletow kodem QR, konfiguracje dashboardu, aktualizacje WebSocket i telemetrie tabletu: ladowanie, baterie, adres IP, rozdzielczosc ekranu oraz aspect ratio.
+
+### 🛎️ Doorhalo Beta
+Eksperymentalny panel Ingress dla Home Assistant do podglądu kamery, ekranu dzwonka, akcji bramy i furtki, wyciszenia oraz przyszłych adapterów Reolink/Dahua VTO.
 
 ---
 ## Instalacja

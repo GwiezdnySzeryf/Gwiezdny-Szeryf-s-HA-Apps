@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DoorHAlo Mockup</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css?v=0.1.1" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="side-nav" aria-label="Nawigacja">
+        <div class="brand-card">
+          <img src="assets/doorhalo_logo_pure_vector.svg" alt="DoorHAlo" />
+          <div>
+            <strong class="doorhalo-wordmark">Door<span>ha</span>lo</strong>
+            <span data-i18n="app.type">Ingress intercom</span>
+          </div>
+        </div>
+
+        <nav class="nav-list">
+          <button class="nav-item active" data-screen="dashboard"><span class="mdi mdi-view-dashboard"></span><span data-i18n="nav.dashboard">Pulpit</span></button>
+          <button class="nav-item" data-screen="call"><span class="mdi mdi-phone-in-talk"></span><span data-i18n="nav.call">Połączenie</span></button>
+          <button class="nav-item" data-screen="history"><span class="mdi mdi-history"></span><span data-i18n="nav.history">Historia</span></button>
+          <button class="nav-item" data-screen="settings"><span class="mdi mdi-cog"></span><span data-i18n="nav.settings">Ustawienia</span></button>
+        </nav>
+
+        <div class="side-status">
+          <span class="status-dot online"></span>
+          <div>
+            <strong data-i18n="sidebar.ingressActive">HA Ingress aktywny</strong>
+            <small data-i18n="sidebar.ingressHint">Lokalnie i zdalnie przez HA</small>
+          </div>
+        </div>
+      </aside>
+
+      <main class="content">
+        <header class="top-bar">
+          <div>
+            <p class="eyebrow" data-i18n="app.tagline">Sterowanie wejściem</p>
+            <h1 id="screen-title">Pulpit <span class="doorhalo-wordmark">Door<span>ha</span>lo</span></h1>
+          </div>
+          <div class="top-actions">
+            <button class="icon-button" id="muteDoorbellToggle" aria-label="Wycisz dzwonek" aria-pressed="false"><span class="mdi mdi-bell-ring-outline"></span></button>
+            <div class="split-action" id="entryActions">
+              <button class="primary-pill split-main" id="entryActionsToggle" aria-expanded="false"><span class="mdi mdi-lock-open-variant"></span><span data-i18n="action.open">Otwórz</span></button>
+              <div class="split-options" aria-hidden="true">
+                <button class="closed-state" data-entry-command="gate"><span class="mdi mdi-gate-open"></span><span data-i18n="action.gate">Brama</span><small data-action-state="state.closedGate">Zamknięta</small></button>
+                <button class="closed-state" data-entry-command="wicket"><span class="mdi mdi-door-open"></span><span data-i18n="action.door">Furtka</span><small data-action-state="state.closedWicket">Zamknięta</small></button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <section class="screen active" id="dashboard">
+          <div class="hero-grid">
+            <article class="video-card span-2">
+              <div class="video-header">
+                <div>
+                  <p class="eyebrow" data-i18n="camera.title">Kamera dzwonka</p>
+                  <h2 data-i18n="camera.mainEntrance">Wejście główne</h2>
+                </div>
+                <span class="live-badge" data-camera-live-badge><span></span>LIVE</span>
+              </div>
+              <div class="video-frame porch-bg">
+                <div class="video-overlay top"><span>camera.front_door</span><span id="cameraStreamStatus">Snapshot</span></div>
+                <div class="video-overlay bottom">
+                  <div class="round-control-group">
+                    <button class="talk-button"><span class="mdi mdi-microphone"></span></button>
+                    <button><span class="mdi mdi-volume-high"></span></button>
+                    <button class="light-toggle" id="cameraLightToggle" aria-pressed="false"><span class="mdi mdi-lightbulb-outline"></span></button>
+                    <button data-camera-snapshot aria-label="Pobierz snapshot"><span class="mdi mdi-camera"></span></button>
+                  </div>
+                  <button class="glass-button" data-camera-fullscreen aria-label="Pełny ekran"><span class="mdi mdi-fullscreen"></span></button>
+                </div>
+              </div>
+            </article>
+
+            <article class="status-card">
+              <span class="mdi mdi-shield-check large-icon"></span>
+              <p class="eyebrow" data-i18n="status.eyebrow">Status</p>
+              <h2 id="systemStatusTitle">Ładowanie statusu...</h2>
+              <p id="systemStatusHint">Sprawdzanie połączenia z Home Assistant i skonfigurowanych encji.</p>
+              <div class="chip-row" id="systemStatusChips"><span class="chip warning">Ładowanie</span></div>
+            </article>
+
+            <article class="quick-card">
+              <p class="eyebrow" data-i18n="entryStatus.eyebrow">Stan wejścia</p>
+              <div class="entry-status-list">
+                <div><span class="mdi mdi-gate"></span><strong data-i18n="action.gate">Brama</strong><small class="status-gray" data-action-state="state.closedGate" id="dashboardGateState">Zamknięta</small></div>
+                <div><span class="mdi mdi-door-closed"></span><strong data-i18n="action.door">Furtka</strong><small class="status-gray" data-action-state="state.closedWicket" id="dashboardWicketState">Zamknięta</small></div>
+                <div><span class="mdi mdi-bell-ring-outline"></span><strong data-i18n="settings.doorbell">Dzwonek</strong><small class="status-green" data-i18n="state.active">Aktywny</small></div>
+                <div><span class="mdi mdi-bell-off-outline"></span><strong data-i18n="settings.useMuteState">Stan wyciszenia</strong><small class="status-gray" id="muteStateText" data-i18n="state.disabled">Wyłączony</small></div>
+              </div>
+            </article>
+          </div>
+
+          <div class="lower-grid">
+            <article class="panel">
+              <div class="panel-heading"><h2 data-i18n="events.recentTitle">Ostatnie zdarzenia</h2><button data-screen="history" data-i18n="action.seeAll">Zobacz wszystko</button></div>
+              <div class="event-list" id="recentEventList">
+                <button class="event"><span class="mdi mdi-doorbell-video"></span><div><strong data-i18n="event.ding">Dzwonek</strong><small data-i18n="event.dingHint">Kurier przy wejściu głównym</small></div><time>14:32</time></button>
+                <button class="event"><span class="mdi mdi-gate-open"></span><div><strong data-i18n="event.gateOpen">Brama otwarta</strong><small data-i18n="event.gateOpenHint">Akcja z Home Assistant</small></div><time>11:10</time></button>
+                <button class="event"><span class="mdi mdi-run-fast"></span><div><strong data-i18n="event.motion">Wykryto ruch</strong><small>camera.front_door</small></div><time>08:46</time></button>
+              </div>
+            </article>
+
+            <article class="panel compact-panel">
+              <h2>Tryb rozmowy</h2>
+              <div class="segmented" id="talkModeSegmented" role="group" aria-label="Tryb rozmowy">
+                <button class="selected" data-mode="push"><strong data-i18n="talk.pushLabel">Naciśnij i mów</strong><small>push-to-talk</small></button>
+                <button data-mode="duplex"><strong data-i18n="talk.duplexLabel">Rozmowa ciągła</strong><small>full duplex</small></button>
+              </div>
+              <div class="talk-mode-hint" id="talkModeHint">
+                <p id="talkModeHintText" data-i18n="talk.pushHint">Zalecany dla Reolink. Audio przesyłane tylko podczas przytrzymania przycisku. Zmniejsza echo i opóźnienia.</p>
+                <div class="warning-alert" id="talkModeWarning" aria-hidden="true" style="display:none;">
+                  <span class="mdi mdi-alert-circle-outline"></span>
+                  <span data-i18n="talk.duplexWarning">Uwaga: Rozmowa ciągła bez słuchawek może powodować sprzężenia akustyczne (echo) na niektórych telefonach.</span>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="screen" id="call">
+          <div class="incoming-call">
+            <article class="call-card" id="callCard" data-call-state="incoming">
+              <p class="eyebrow" id="callEyebrow">Dzwonek do wejścia</p>
+              <h2 id="callTitle">Ktoś jest przy furtce</h2>
+              <p class="call-subtitle" id="callSubtitle">Sprawdź obraz z kamery i zdecyduj, czy chcesz odebrać rozmowę.</p>
+              <div class="video-frame porch-bg call-video">
+                <span class="live-badge floating" data-camera-live-badge><span></span>LIVE</span>
+                <div class="call-video-status" id="callVideoStatus"><span class="mdi mdi-doorbell-video"></span>Reolink Doorbell</div>
+              </div>
+              <div class="call-active-tools" id="callActiveTools" aria-hidden="true">
+                <button class="talk-button"><span class="mdi mdi-microphone"></span><span data-i18n="talk.pushLabel">Naciśnij i mów</span></button>
+                <button class="danger-soft" data-call-action="end"><span class="mdi mdi-phone-hangup"></span><span data-i18n="call.end">Zakończ</span></button>
+              </div>
+              <div class="call-actions" id="callActions">
+                <button class="call-decline" data-call-action="decline"><span class="mdi mdi-phone-hangup"></span><span data-i18n="call.decline">Odrzuć</span></button>
+                <button class="call-answer" data-call-action="answer"><span class="mdi mdi-phone"></span><span data-i18n="call.answer">Odbierz</span></button>
+              </div>
+              <div class="dual-actions">
+                <button data-call-action="open-wicket"><span class="mdi mdi-door-open"></span><span data-i18n="action.openDoor">Otwórz furtkę</span></button>
+                <button data-call-action="open-gate"><span class="mdi mdi-gate-open"></span><span data-i18n="action.openGate">Otwórz bramę</span></button>
+              </div>
+              <div class="call-result" id="callResult" aria-live="polite"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="screen" id="history">
+          <article class="panel wide-panel">
+            <div class="panel-heading"><h2 data-i18n="history.title">Historia aktywności</h2><button data-i18n="history.export">Eksport</button></div>
+            <div class="history-list" id="historyList">
+              <div class="history-item"><span class="mdi mdi-doorbell-video"></span><div><strong data-i18n="history.dingAnswered">Dzwonek odebrany</strong><small data-i18n="history.dingAnsweredHint">Reolink Doorbell, naciśnij i mów</small></div><time data-i18n="time.today1432">Dziś 14:32</time></div>
+              <div class="history-item"><span class="mdi mdi-phone-missed"></span><div><strong data-i18n="history.missed">Połączenie nieodebrane</strong><small data-i18n="history.missedHint">Dahua VTO, brak odpowiedzi po 30 s</small></div><time data-i18n="time.today1202">Dziś 12:02</time></div>
+              <div class="history-item"><span class="mdi mdi-camera"></span><div><strong data-i18n="history.snapshot">Snapshot zapisany</strong><small data-i18n="history.snapshotHint">Wyzwalacz: dzwonek</small></div><time data-i18n="time.yesterday1817">Wczoraj 18:17</time></div>
+              <div class="history-item"><span class="mdi mdi-gate-open"></span><div><strong data-i18n="history.gateOpen">Brama otwarta</strong><small data-i18n="history.gateOpenHint">Wywołano button.open_gate</small></div><time data-i18n="time.yesterday0811">Wczoraj 08:11</time></div>
+            </div>
+          </article>
+        </section>
+
+        <section class="screen" id="settings">
+          <div class="settings-grid">
+            <article class="panel">
+              <h2 data-i18n="settings.entities">Encje Home Assistant</h2>
+              
+              <!-- KAMERA -->
+              <div class="entity-row" data-feature-row="camera">
+                <label class="feature-check">
+                  <input type="checkbox" data-feature-toggle="camera" checked />
+                  <span data-i18n="settings.useCamera">Używaj kamery</span>
+                </label>
+                <div class="ha-combo-box">
+                  <div class="ha-combo-trigger">
+                    <span class="mdi mdi-video"></span>
+                    <span class="ha-combo-value">camera.front_door</span>
+                    <span class="mdi mdi-menu-down"></span>
+                  </div>
+                  <div class="ha-combo-dropdown">
+                    <div class="ha-combo-search"><input type="text" placeholder="Filtruj..." /></div>
+                    <div class="ha-combo-list">
+                      <div class="ha-combo-option selected" data-value="camera.front_door"><span class="mdi mdi-video"></span>camera.front_door</div>
+                      <div class="ha-combo-option" data-value="camera.back_door"><span class="mdi mdi-video"></span>camera.back_door</div>
+                      <div class="ha-combo-option" data-value="camera.gate"><span class="mdi mdi-video"></span>camera.gate</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <label class="rtsp-setting">
+                <span data-i18n="settings.cameraRtsp">Adres RTSP kamery</span>
+                <input id="cameraRtspInput" type="text" inputmode="url" placeholder="rtsp://user:haslo@192.168.1.10:554/stream1" autocomplete="off" />
+                <small data-i18n="settings.cameraRtspHint">RTSP jest zapisywany do przyszłego adaptera. Przeglądarka nie odtwarza RTSP bezpośrednio, więc obraz na żywo nadal wymaga HA stream, WebRTC albo go2rtc.</small>
+              </label>
+
+              <!-- DZWONEK -->
+              <div class="entity-row" data-feature-row="doorbell">
+                <label class="feature-check">
+                  <input type="checkbox" data-feature-toggle="doorbell" checked />
+                  <span data-i18n="settings.useDoorbell">Używaj dzwonka</span>
+                </label>
+                <div class="ha-combo-box">
+                  <div class="ha-combo-trigger">
+                    <span class="mdi mdi-doorbell-video"></span>
+                    <span class="ha-combo-value">binary_sensor.front_door_ding</span>
+                    <span class="mdi mdi-menu-down"></span>
+                  </div>
+                  <div class="ha-combo-dropdown">
+                    <div class="ha-combo-search"><input type="text" placeholder="Filtruj..." /></div>
+                    <div class="ha-combo-list">
+                      <div class="ha-combo-option selected" data-value="binary_sensor.front_door_ding"><span class="mdi mdi-doorbell-video"></span>binary_sensor.front_door_ding</div>
+                      <div class="ha-combo-option" data-value="binary_sensor.side_door_ding"><span class="mdi mdi-doorbell-video"></span>binary_sensor.side_door_ding</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- BRAMA -->
+              <div class="entity-row" data-feature-row="gate">
+                <label class="feature-check">
+                  <input type="checkbox" data-feature-toggle="gate" checked />
+                  <span data-i18n="settings.useGate">Używaj bramy</span>
+                </label>
+                <div class="ha-combo-box">
+                  <div class="ha-combo-trigger">
+                    <span class="mdi mdi-gate"></span>
+                    <span class="ha-combo-value">button.open_gate</span>
+                    <span class="mdi mdi-menu-down"></span>
+                  </div>
+                  <div class="ha-combo-dropdown">
+                    <div class="ha-combo-search"><input type="text" placeholder="Filtruj..." /></div>
+                    <div class="ha-combo-list">
+                      <div class="ha-combo-option selected" data-value="button.open_gate"><span class="mdi mdi-gate"></span>button.open_gate</div>
+                      <div class="ha-combo-option" data-value="switch.gate_relay"><span class="mdi mdi-gate"></span>switch.gate_relay</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- STAN BRAMY -->
+              <div class="entity-row entity-subrow" data-feature-row="gate-state">
+                <label class="feature-check">
+                  <input type="checkbox" data-feature-toggle="gate-state" checked />
+                  <span data-i18n="settings.useGateState">Stan bramy</span>
+                </label>
+                <div class="ha-combo-box">
+                  <div class="ha-combo-trigger">
+                    <span class="mdi mdi-gate"></span>
+                    <span class="ha-combo-value">binary_sensor.gate_open</span>
+                    <span class="mdi mdi-menu-down"></span>
+                  </div>
+                  <div class="ha-combo-dropdown">
+                    <div class="ha-combo-search"><input type="text" placeholder="Filtruj..." /></div>
+                    <div class="ha-combo-list">
+                      <div class="ha-combo-option selected" data-value="binary_sensor.gate_open"><span class="mdi mdi-gate"></span>binary_sensor.gate_open</div>
+                      <div class="ha-combo-option" data-value="binary_sensor.gate_closed_sensor"><span class="mdi mdi-gate"></span>binary_sensor.gate_closed_sensor</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- FURTKA -->
+              <div class="entity-row" data-feature-row="door">
+                <label class="feature-check">
+                  <input type="checkbox" data-feature-toggle="door" checked />
+                  <span data-i18n="settings.useDoor">Używaj furtki</span>
+                </label>
+                <div class="ha-combo-box">
+                  <div class="ha-combo-trigger">
+                    <span class="mdi mdi-door-open"></span>
+                    <span class="ha-combo-value">lock.front_door</span>
+                    <span class="mdi mdi-menu-down"></span>
+                  </div>
+                  <div class="ha-combo-dropdown">
+                    <div class="ha-combo-search"><input type="text" placeholder="Filtruj..." /></div>
+                    <div class="ha-combo-list">
+                      <div class="ha-combo-option selected" data-value="lock.front_door"><span class="mdi mdi-door-open"></span>lock.front_door</div>
+                      <div class="ha-combo-option" data-value="button.open_wicket"><span class="mdi mdi-door-open"></span>button.open_wicket</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- STAN FURTKI -->
+              <div class="entity-row entity-subrow" data-feature-row="door-state">
+                <label class="feature-check">
+                  <input type="checkbox" data-feature-toggle="door-state" checked />
+                  <span data-i18n="settings.useDoorState">Stan furtki</span>
+                </label>
+                <div class="ha-combo-box">
+                  <div class="ha-combo-trigger">
+                    <span class="mdi mdi-door-closed"></span>
+                    <span class="ha-combo-value">binary_sensor.wicket_open</span>
+                    <span class="mdi mdi-menu-down"></span>
+                  </div>
+                  <div class="ha-combo-dropdown">
+                    <div class="ha-combo-search"><input type="text" placeholder="Filtruj..." /></div>
+                    <div class="ha-combo-list">
+                      <div class="ha-combo-option selected" data-value="binary_sensor.wicket_open"><span class="mdi mdi-door-closed"></span>binary_sensor.wicket_open</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ŚWIATŁO -->
+              <div class="entity-row" data-feature-row="light">
+                <label class="feature-check">
+                  <input type="checkbox" data-feature-toggle="light" />
+                  <span data-i18n="settings.useLight">Używaj światła</span>
+                </label>
+                <div class="ha-combo-box">
+                  <div class="ha-combo-trigger">
+                    <span class="mdi mdi-lightbulb"></span>
+                    <span class="ha-combo-value">light.front_porch</span>
+                    <span class="mdi mdi-menu-down"></span>
+                  </div>
+                  <div class="ha-combo-dropdown">
+                    <div class="ha-combo-search"><input type="text" placeholder="Filtruj..." /></div>
+                    <div class="ha-combo-list">
+                      <div class="ha-combo-option selected" data-value="light.front_porch"><span class="mdi mdi-lightbulb"></span>light.front_porch</div>
+                      <div class="ha-combo-option" data-value="light.gate_lights"><span class="mdi mdi-lightbulb"></span>light.gate_lights</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- STAN WYCISZENIA -->
+              <div class="entity-row" data-feature-row="mute-state">
+                <label class="feature-check">
+                  <input type="checkbox" data-feature-toggle="mute-state" checked />
+                  <span data-i18n="settings.useMuteState">Stan wyciszenia</span>
+                </label>
+                <div class="ha-combo-box">
+                  <div class="ha-combo-trigger">
+                    <span class="mdi mdi-bell-off"></span>
+                    <span class="ha-combo-value">input_boolean.doorhalo_muted</span>
+                    <span class="mdi mdi-menu-down"></span>
+                  </div>
+                  <div class="ha-combo-dropdown">
+                    <div class="ha-combo-search"><input type="text" placeholder="Filtruj..." /></div>
+                    <div class="ha-combo-list">
+                      <div class="ha-combo-option selected" data-value="input_boolean.doorhalo_muted"><span class="mdi mdi-bell-off"></span>input_boolean.doorhalo_muted</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- HISTORIA -->
+              <div class="entity-row" data-feature-row="history">
+                <label class="feature-check">
+                  <input type="checkbox" data-feature-toggle="history" checked />
+                  <span data-i18n="settings.useHistory">Używaj historii</span>
+                </label>
+                <div class="ha-combo-box">
+                  <div class="ha-combo-trigger">
+                    <span class="mdi mdi-database"></span>
+                    <span class="ha-combo-value">/data/doorhalo.sqlite</span>
+                    <span class="mdi mdi-menu-down"></span>
+                  </div>
+                  <div class="ha-combo-dropdown">
+                    <div class="ha-combo-search"><input type="text" placeholder="Filtruj..." /></div>
+                    <div class="ha-combo-list">
+                      <div class="ha-combo-option selected" data-value="/data/doorhalo.sqlite"><span class="mdi mdi-database"></span>/data/doorhalo.sqlite</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+            <article class="panel config-health-card" id="configHealthCard">
+              <div class="panel-heading">
+                <h2 data-i18n="settings.configHealth">Zdrowie konfiguracji</h2>
+                <span class="chip" id="configHealthChip">...</span>
+              </div>
+              <p id="configHealthSummary" data-i18n="settings.configHealthLoading">Sprawdzanie encji Home Assistant...</p>
+              <div class="config-health-list" id="configHealthList"></div>
+            </article>
+            <article class="panel">
+              <h2 data-i18n="settings.adapter">Adapter urządzenia</h2>
+              <div class="adapter-card selected"><strong>Reolink</strong><span>camera + HA entities + talk adapter</span></div>
+              <div class="adapter-card"><strong>Dahua VTO</strong><span>camera + SIP/WebRTC adapter</span></div>
+            </article>
+            <article class="panel">
+              <h2 data-i18n="settings.remoteAccess">Dostęp zdalny</h2>
+              <div class="setting-row"><span>Ingress</span><strong data-i18n="state.active">Aktywny</strong></div>
+              <div class="setting-row"><span data-i18n="settings.outsideWifi">Poza Wi-Fi</span><strong data-i18n="settings.viaHaUrl">Przez HA URL</strong></div>
+              <div class="setting-row"><span data-i18n="settings.publicPort">Publiczny port</span><strong data-i18n="state.disabled">Wyłączony</strong></div>
+              <p data-i18n="settings.remoteHint">Rekomendowane: Nabu Casa, VPN albo zabezpieczony reverse proxy do Home Assistant.</p>
+            </article>
+            <article class="panel">
+              <h2 data-i18n="settings.appOptions">Opcje aplikacji</h2>
+              <label><span data-i18n="settings.language">Język</span><select id="languageSelect"><option value="pl">Polski</option><option value="en">English</option></select></label>
+              <div class="toggle-row">
+                <div><strong data-i18n="settings.darkMode">Tryb ciemny</strong><small data-i18n="settings.darkModeHint">Podgląd docelowego motywu HA.</small></div>
+                <label class="switch"><input id="darkModeToggle" type="checkbox" /><span></span></label>
+              </div>
+              <button class="info-button" id="openInfoButton"><span class="mdi mdi-information-outline"></span><span data-i18n="settings.infoButton">Informacje o aplikacji</span></button>
+            </article>
+          </div>
+        </section>
+      </main>
+
+      <div class="modal-backdrop" id="infoModal" aria-hidden="true">
+        <section class="info-modal" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+          <button class="modal-close" id="closeInfoButton" aria-label="Zamknij"><span class="mdi mdi-close"></span></button>
+          <img src="assets/doorhalo_logo_pure_vector.svg" alt="DoorHAlo" />
+          <p class="eyebrow" data-i18n="info.eyebrow">Informacje</p>
+          <h2 id="infoTitle"><span class="doorhalo-wordmark">Door<span>ha</span>lo</span> Mockup</h2>
+          <p data-i18n="info.description">Makieta aplikacji ingress dla Home Assistant do obsługi dzwonka, podglądu kamery, rozmowy dwukierunkowej oraz akcji bramy lub drzwi.</p>
+          <div class="info-list">
+            <div><span class="mdi mdi-home-assistant"></span><strong>Home Assistant Ingress</strong><small data-i18n="info.ingress">Dostęp lokalny i zdalny przez HA.</small></div>
+            <div><span class="mdi mdi-cctv"></span><strong>Reolink / Dahua VTO</strong><small data-i18n="info.devices">Adaptery urządzeń planowane w roadmapie.</small></div>
+            <div><span class="mdi mdi-microphone-message"></span><strong data-i18n="info.talkTitle">Rozmowa dwukierunkowa</strong><small data-i18n="info.talk">Tryb „naciśnij i mów” albo „rozmowa ciągła” wybierany w UI.</small></div>
+          </div>
+        </section>
+      </div>
+
+      <nav class="bottom-nav" aria-label="Nawigacja mobilna">
+        <button class="active" data-screen="dashboard"><span class="mdi mdi-view-dashboard"></span><span data-i18n="nav.dashboard">Pulpit</span></button>
+        <button data-screen="call"><span class="mdi mdi-phone-in-talk"></span><span data-i18n="nav.call">Połączenie</span></button>
+        <button data-screen="history"><span class="mdi mdi-history"></span><span data-i18n="nav.history">Historia</span></button>
+        <button data-screen="settings"><span class="mdi mdi-cog"></span><span data-i18n="nav.options">Opcje</span></button>
+      </nav>
+      <div class="toast" id="appToast" role="status" aria-live="polite"></div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.18/dist/hls.min.js"></script>
+    <script src="app.js?v=0.1.1"></script>
+  </body>
+</html>
