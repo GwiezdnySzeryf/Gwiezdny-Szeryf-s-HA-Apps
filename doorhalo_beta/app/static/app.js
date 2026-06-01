@@ -113,6 +113,7 @@ const translations = {
     "talk.statusLocalOnly": "Mikrofon działa lokalnie. Adapter urządzenia nie jest jeszcze podłączony.",
     "talk.statusLive": "Mów teraz",
     "talk.statusIdle": "Mikrofon nieaktywny",
+    "talk.statusStreaming": "Audio trafia do backendu: {chunks} pakietów",
     "app.type": "Komunikator Ingress",
     "sidebar.ingressActive": "HA Ingress aktywny",
     "sidebar.ingressHint": "Lokalnie i zdalnie przez HA",
@@ -277,6 +278,7 @@ const translations = {
     "talk.statusLocalOnly": "Microphone works locally. Device adapter is not connected yet.",
     "talk.statusLive": "Speak now",
     "talk.statusIdle": "Microphone idle",
+    "talk.statusStreaming": "Audio reaches backend: {chunks} chunks",
     "app.type": "Ingress intercom",
     "sidebar.ingressActive": "HA Ingress active",
     "sidebar.ingressHint": "Locally and remotely via HA",
@@ -1363,6 +1365,9 @@ let selectedTalkMode = "push"; // default
 let talkSessionId = "";
 let talkMediaStream = null;
 let talkPttActive = false;
+let talkAudioSocket = null;
+let talkMediaRecorder = null;
+let talkAudioChunksSent = 0;
 
 function setTalkButtonLabel(button, labelKey) {
   const label = button.querySelector("span:not(.mdi)");
@@ -1424,6 +1429,69 @@ function updateTalkStatus(talk) {
   talkStatusText.className = isLocalOnly ? "talk-status warning" : "talk-status success";
 }
 
+function updateTalkStreamingStatus(chunks = talkAudioChunksSent) {
+  if (!talkStatusText) return;
+  talkStatusText.textContent = translations[currentLanguage]["talk.statusStreaming"].replace("{chunks}", chunks);
+  talkStatusText.className = "talk-status success";
+}
+
+function talkAudioMimeType() {
+  const types = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"];
+  return types.find((type) => window.MediaRecorder?.isTypeSupported(type)) || "";
+}
+
+function connectTalkAudioSocket(sessionId) {
+  if (talkAudioSocket?.readyState === WebSocket.OPEN) return Promise.resolve();
+
+  return new Promise((resolve, reject) => {
+    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+    const socket = new WebSocket(`${protocol}://${window.location.host}${doorhaloPath(`/api/talk/${sessionId}/audio`)}`);
+    talkAudioSocket = socket;
+
+    socket.addEventListener("open", () => resolve(), { once: true });
+    socket.addEventListener("error", () => reject(new Error("Talk audio socket failed")), { once: true });
+    socket.addEventListener("message", (event) => {
+      try {
+        const message = JSON.parse(event.data);
+        if (message.type === "audio_stats") {
+          talkAudioChunksSent = message.session?.audio_chunks || talkAudioChunksSent;
+          updateTalkStreamingStatus(talkAudioChunksSent);
+        }
+      } catch (error) {
+        console.warn("Doorhalo audio socket message ignored", error);
+      }
+    });
+    socket.addEventListener("close", () => {
+      if (talkAudioSocket === socket) talkAudioSocket = null;
+    });
+  });
+}
+
+function stopTalkRecorder() {
+  if (talkMediaRecorder?.state === "recording") {
+    talkMediaRecorder.stop();
+  }
+  talkMediaRecorder = null;
+}
+
+function startTalkRecorder() {
+  if (!talkMediaStream || talkMediaRecorder?.state === "recording") return;
+  if (!window.MediaRecorder) throw new Error("MediaRecorder unavailable");
+
+  const mimeType = talkAudioMimeType();
+  talkMediaRecorder = new MediaRecorder(talkMediaStream, mimeType ? { mimeType } : undefined);
+  talkMediaRecorder.addEventListener("dataavailable", (event) => {
+    if (!event.data?.size || talkAudioSocket?.readyState !== WebSocket.OPEN) return;
+    event.data.arrayBuffer().then((buffer) => {
+      if (talkAudioSocket?.readyState !== WebSocket.OPEN) return;
+      talkAudioSocket.send(buffer);
+      talkAudioChunksSent += 1;
+      updateTalkStreamingStatus(talkAudioChunksSent);
+    });
+  });
+  talkMediaRecorder.start(350);
+}
+
 async function startTalkSession() {
   const options = currentDoorhaloStatus?.options || {};
   if (options.talk_enabled === false) throw new Error("Talk disabled");
@@ -1443,6 +1511,7 @@ async function startTalkSession() {
     });
     talkSessionId = result.session?.id || "";
     updateTalkStatus(result.talk);
+    await connectTalkAudioSocket(talkSessionId);
   }
 
   return talkSessionId;
@@ -1453,6 +1522,13 @@ async function stopTalkSession() {
     const sessionId = talkSessionId;
     talkSessionId = "";
     await doorhaloFetch(doorhaloPath(`/api/talk/${sessionId}/stop`), { method: "POST" });
+  }
+
+  stopTalkRecorder();
+  talkAudioChunksSent = 0;
+  if (talkAudioSocket) {
+    talkAudioSocket.close();
+    talkAudioSocket = null;
   }
 
   talkPttActive = false;
@@ -1476,6 +1552,8 @@ async function stopTalkSession() {
 async function setPushToTalk(active) {
   if (!talkSessionId) await startTalkSession();
   talkPttActive = active;
+  if (active) startTalkRecorder();
+  else stopTalkRecorder();
   document.querySelectorAll(".talk-button").forEach((button) => {
     button.classList.toggle("light-on", active);
     setTalkButtonLabel(button, active ? "talk.statusLive" : "talk.holdLabel");
@@ -1521,6 +1599,7 @@ document.querySelectorAll(".talk-button").forEach((btn) => {
       }
 
       await startTalkSession();
+      startTalkRecorder();
       btn.classList.add("light-on");
       setTalkButtonLabel(btn, "talk.toggleLabelOn");
       btn.style.background = "#177245";

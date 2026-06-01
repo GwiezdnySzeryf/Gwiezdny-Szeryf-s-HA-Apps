@@ -287,6 +287,8 @@ def build_talk_status(options: dict[str, Any] | None = None) -> dict[str, Any]:
         "adapter": adapter,
         "target_configured": bool(options.get("talk_target_url")),
         "active_sessions": len(ACTIVE_TALK_SESSIONS),
+        "audio_chunks": sum(session.get("audio_chunks", 0) for session in ACTIVE_TALK_SESSIONS.values()),
+        "audio_bytes": sum(session.get("audio_bytes", 0) for session in ACTIVE_TALK_SESSIONS.values()),
         "audio_transport": "browser_microphone_only" if adapter == "local_microphone" else "adapter_required",
     }
 
@@ -393,6 +395,9 @@ async def start_talk_session(payload: dict[str, Any] | None = None) -> dict[str,
         "adapter": adapter,
         "started_at": datetime.now(timezone.utc).isoformat(),
         "ptt_active": False,
+        "audio_connected": False,
+        "audio_chunks": 0,
+        "audio_bytes": 0,
         "transport_ready": adapter != "local_microphone" and bool(options.get("talk_target_url")),
     }
     ACTIVE_TALK_SESSIONS[session["id"]] = session
@@ -414,6 +419,45 @@ async def stop_talk_session(session_id: str) -> dict[str, Any]:
     ACTIVE_TALK_SESSIONS.pop(session_id, None)
     append_history("talk", "Talk session ended", None, f"Mode: {session.get('mode')}, adapter: {session.get('adapter')}")
     return {"ok": True, "session": session, "talk": build_talk_status()}
+
+
+@app.websocket("/api/talk/{session_id}/audio")
+async def talk_audio_stream(websocket: WebSocket, session_id: str) -> None:
+    await websocket.accept()
+    session = ACTIVE_TALK_SESSIONS.get(session_id)
+    if not session:
+        await websocket.send_json({"type": "error", "message": "Talk session not found"})
+        await websocket.close(code=4404)
+        return
+
+    session["audio_connected"] = True
+    session["updated_at"] = datetime.now(timezone.utc).isoformat()
+    await websocket.send_json({"type": "ready", "session": session})
+
+    try:
+        while True:
+            message = await websocket.receive()
+            if message.get("bytes") is not None:
+                chunk = message["bytes"]
+                session["audio_chunks"] = int(session.get("audio_chunks", 0)) + 1
+                session["audio_bytes"] = int(session.get("audio_bytes", 0)) + len(chunk)
+                session["last_audio_at"] = datetime.now(timezone.utc).isoformat()
+                if session["audio_chunks"] % 10 == 0:
+                    await websocket.send_json({"type": "audio_stats", "session": session})
+            elif message.get("text"):
+                with contextlib.suppress(json.JSONDecodeError):
+                    data = json.loads(message["text"])
+                    if data.get("type") == "ping":
+                        await websocket.send_json({"type": "pong"})
+            elif message.get("type") == "websocket.disconnect":
+                break
+    except WebSocketDisconnect:
+        return
+    finally:
+        session = ACTIVE_TALK_SESSIONS.get(session_id)
+        if session:
+            session["audio_connected"] = False
+            session["updated_at"] = datetime.now(timezone.utc).isoformat()
 
 
 @app.websocket("/api/ws")

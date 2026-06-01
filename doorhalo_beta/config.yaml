@@ -1,5 +1,5 @@
 name: "Doorhalo Beta"
-version: "0.0.3"
+version: "0.0.4"
 slug: "doorhalo_beta"
 description: "Beta smart intercom gate entry control with Reolink & Dahua VTO support"
 url: "https://github.com/GwiezdnySzeryf/Gwiezdny-Szeryf-s-HA-Apps"
