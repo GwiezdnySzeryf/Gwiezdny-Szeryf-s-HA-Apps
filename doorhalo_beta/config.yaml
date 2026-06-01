@@ -1,5 +1,5 @@
 name: "Doorhalo Beta"
-version: "0.0.4"
+version: "0.0.5"
 slug: "doorhalo_beta"
 description: "Beta smart intercom gate entry control with Reolink & Dahua VTO support"
 url: "https://github.com/GwiezdnySzeryf/Gwiezdny-Szeryf-s-HA-Apps"
@@ -25,7 +25,7 @@ options:
   confirm_entry_actions: true
   talk_enabled: true
   talk_mode: "push"
-  talk_adapter: "local_microphone"
+  talk_adapter: "reolink"
   talk_target_url: ""
   doorbell_entity: "binary_sensor.front_door_ding"
   gate_action: "button.open_gate"

@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=0.0.4" />
+    <link rel="stylesheet" href="styles.css?v=0.0.5" />
   </head>
   <body>
     <div class="app-shell">
@@ -392,21 +392,21 @@
             </article>
             <article class="panel">
               <h2 data-i18n="settings.adapter">Adapter urządzenia</h2>
-              <div class="adapter-card selected"><strong>Reolink</strong><span>camera + HA entities + talk adapter</span></div>
-              <div class="adapter-card"><strong>Dahua VTO</strong><span>camera + SIP/WebRTC adapter</span></div>
+              <div class="adapter-card selected"><strong>Reolink</strong><span data-i18n="settings.adapterReolinkHint">Priorytet: aktywny rozwój audio dla Reolink Doorbell.</span></div>
+              <div class="adapter-card wip"><strong>Dahua VTO</strong><span data-i18n="settings.adapterVtoHint">Work in progress: Dahua VTO zostaje w roadmapie, ale jeszcze nie jest aktywnym adapterem.</span></div>
               <label class="rtsp-setting">
                 <span data-i18n="settings.talkAdapter">Adapter rozmowy</span>
                 <select id="talkAdapterSelect">
                   <option value="local_microphone" data-i18n="settings.talkAdapterLocal">Tylko mikrofon lokalny</option>
                   <option value="reolink" data-i18n="settings.talkAdapterReolink">Reolink</option>
-                  <option value="dahua_vto" data-i18n="settings.talkAdapterDahua">Dahua VTO</option>
-                  <option value="sip" data-i18n="settings.talkAdapterSip">SIP/WebRTC</option>
+                  <option value="dahua_vto" data-i18n="settings.talkAdapterDahua">Dahua VTO (work in progress)</option>
+                  <option value="sip" data-i18n="settings.talkAdapterSip">SIP/WebRTC (work in progress)</option>
                 </select>
               </label>
               <label class="rtsp-setting">
                 <span data-i18n="settings.talkTarget">Adres docelowy rozmowy</span>
-                <input id="talkTargetInput" type="text" inputmode="url" placeholder="sip:100@192.168.1.10 albo webrtc://..." autocomplete="off" />
-                <small data-i18n="settings.talkTargetHint">Opcjonalne miejsce na adres przyszłego adaptera, np. SIP/WebRTC/go2rtc.</small>
+                <input id="talkTargetInput" type="text" inputmode="url" placeholder="http://192.168.1.10 albo go2rtc/WebRTC endpoint" autocomplete="off" />
+                <small data-i18n="settings.talkTargetHint">Dla Reolinka wpisz adres urządzenia lub przyszłego adaptera, np. http://192.168.1.10 albo go2rtc/WebRTC endpoint.</small>
               </label>
             </article>
             <article class="panel">
@@ -465,6 +465,6 @@
       <div class="toast" id="appToast" role="status" aria-live="polite"></div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.18/dist/hls.min.js"></script>
-    <script src="app.js?v=0.0.4"></script>
+    <script src="app.js?v=0.0.5"></script>
   </body>
 </html>

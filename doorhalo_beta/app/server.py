@@ -22,6 +22,7 @@ HA_REST_URL = os.environ.get("DOORHALO_HA_REST_URL", "http://supervisor/core/api
 HA_WS_URL = os.environ.get("DOORHALO_HA_WS_URL", "ws://supervisor/core/websocket")
 MAX_HISTORY_EVENTS = 200
 ACTIVE_TALK_SESSIONS: dict[str, dict[str, Any]] = {}
+WIP_TALK_ADAPTERS = {"dahua_vto", "sip"}
 
 DEFAULT_OPTIONS = {
     "camera_entity": "camera.front_door",
@@ -281,16 +282,51 @@ def service_for_action(entity_id: str, preferred: str | None = None) -> tuple[st
 def build_talk_status(options: dict[str, Any] | None = None) -> dict[str, Any]:
     options = options or load_options()
     adapter = options.get("talk_adapter") or "disabled"
+    target_configured = bool(options.get("talk_target_url"))
+    adapter_ready = adapter == "local_microphone" or (adapter == "reolink" and target_configured)
     return {
         "enabled": options.get("talk_enabled", True),
         "mode": options.get("talk_mode", "push"),
         "adapter": adapter,
-        "target_configured": bool(options.get("talk_target_url")),
+        "adapter_ready": adapter_ready,
+        "adapter_state": talk_adapter_state(adapter, target_configured),
+        "adapter_wip": adapter in WIP_TALK_ADAPTERS,
+        "target_configured": target_configured,
         "active_sessions": len(ACTIVE_TALK_SESSIONS),
         "audio_chunks": sum(session.get("audio_chunks", 0) for session in ACTIVE_TALK_SESSIONS.values()),
         "audio_bytes": sum(session.get("audio_bytes", 0) for session in ACTIVE_TALK_SESSIONS.values()),
-        "audio_transport": "browser_microphone_only" if adapter == "local_microphone" else "adapter_required",
+        "adapter_chunks": sum(session.get("adapter_chunks", 0) for session in ACTIVE_TALK_SESSIONS.values()),
+        "adapter_bytes": sum(session.get("adapter_bytes", 0) for session in ACTIVE_TALK_SESSIONS.values()),
+        "audio_transport": audio_transport_for_adapter(adapter, target_configured),
     }
+
+
+def talk_adapter_state(adapter: str, target_configured: bool) -> str:
+    if adapter == "local_microphone":
+        return "local_only"
+    if adapter == "reolink":
+        return "ready" if target_configured else "missing_target"
+    if adapter in WIP_TALK_ADAPTERS:
+        return "work_in_progress"
+    return "unsupported"
+
+
+def audio_transport_for_adapter(adapter: str, target_configured: bool) -> str:
+    if adapter == "local_microphone":
+        return "browser_microphone_only"
+    if adapter == "reolink":
+        return "reolink_adapter" if target_configured else "adapter_required"
+    return "work_in_progress" if adapter in WIP_TALK_ADAPTERS else "adapter_required"
+
+
+async def handle_talk_audio_chunk(session: dict[str, Any], chunk: bytes) -> None:
+    if session.get("adapter") != "reolink":
+        return
+
+    session["adapter_chunks"] = int(session.get("adapter_chunks", 0)) + 1
+    session["adapter_bytes"] = int(session.get("adapter_bytes", 0)) + len(chunk)
+    session["adapter_state"] = "reolink_buffered"
+    session["adapter_detail"] = "Audio buffered for Reolink talk adapter; device protocol output pending"
 
 
 def get_talk_session(session_id: str) -> dict[str, Any]:
@@ -389,6 +425,7 @@ async def start_talk_session(payload: dict[str, Any] | None = None) -> dict[str,
         raise HTTPException(status_code=400, detail="Unsupported talk mode")
 
     adapter = options.get("talk_adapter") or "local_microphone"
+    target_configured = bool(options.get("talk_target_url"))
     session = {
         "id": uuid.uuid4().hex,
         "mode": requested_mode,
@@ -398,7 +435,11 @@ async def start_talk_session(payload: dict[str, Any] | None = None) -> dict[str,
         "audio_connected": False,
         "audio_chunks": 0,
         "audio_bytes": 0,
-        "transport_ready": adapter != "local_microphone" and bool(options.get("talk_target_url")),
+        "adapter_chunks": 0,
+        "adapter_bytes": 0,
+        "adapter_state": talk_adapter_state(adapter, target_configured),
+        "adapter_detail": "",
+        "transport_ready": adapter == "local_microphone" or (adapter == "reolink" and target_configured),
     }
     ACTIVE_TALK_SESSIONS[session["id"]] = session
     append_history("talk", "Talk session started", None, f"Mode: {requested_mode}, adapter: {adapter}")
@@ -442,6 +483,7 @@ async def talk_audio_stream(websocket: WebSocket, session_id: str) -> None:
                 session["audio_chunks"] = int(session.get("audio_chunks", 0)) + 1
                 session["audio_bytes"] = int(session.get("audio_bytes", 0)) + len(chunk)
                 session["last_audio_at"] = datetime.now(timezone.utc).isoformat()
+                await handle_talk_audio_chunk(session, chunk)
                 if session["audio_chunks"] % 10 == 0:
                     await websocket.send_json({"type": "audio_stats", "session": session})
             elif message.get("text"):

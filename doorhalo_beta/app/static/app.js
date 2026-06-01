@@ -47,10 +47,12 @@ const translations = {
     "settings.talkAdapter": "Adapter rozmowy",
     "settings.talkAdapterLocal": "Tylko mikrofon lokalny",
     "settings.talkAdapterReolink": "Reolink",
-    "settings.talkAdapterDahua": "Dahua VTO",
-    "settings.talkAdapterSip": "SIP/WebRTC",
+    "settings.talkAdapterDahua": "Dahua VTO (work in progress)",
+    "settings.talkAdapterSip": "SIP/WebRTC (work in progress)",
     "settings.talkTarget": "Adres docelowy rozmowy",
-    "settings.talkTargetHint": "Opcjonalne miejsce na adres przyszłego adaptera, np. SIP/WebRTC/go2rtc.",
+    "settings.talkTargetHint": "Dla Reolinka wpisz adres urządzenia lub przyszłego adaptera, np. http://192.168.1.10 albo go2rtc/WebRTC endpoint.",
+    "settings.adapterReolinkHint": "Priorytet: aktywny rozwój audio dla Reolink Doorbell.",
+    "settings.adapterVtoHint": "Work in progress: Dahua VTO zostaje w roadmapie, ale jeszcze nie jest aktywnym adapterem.",
     "settings.doorbell": "Dzwonek",
     "settings.gate": "Brama",
     "settings.door": "Furtka",
@@ -111,6 +113,9 @@ const translations = {
     "talk.statusReady": "Mikrofon gotowy",
     "talk.statusDisabled": "Rozmowa wyłączona",
     "talk.statusLocalOnly": "Mikrofon działa lokalnie. Adapter urządzenia nie jest jeszcze podłączony.",
+    "talk.statusReolinkReady": "Adapter Reolink gotowy na pakiety audio",
+    "talk.statusReolinkMissingTarget": "Adapter Reolink wymaga adresu docelowego w ustawieniach",
+    "talk.statusWip": "Ten adapter jest work in progress",
     "talk.statusLive": "Mów teraz",
     "talk.statusIdle": "Mikrofon nieaktywny",
     "talk.statusStreaming": "Audio trafia do backendu: {chunks} pakietów",
@@ -212,10 +217,12 @@ const translations = {
     "settings.talkAdapter": "Talk adapter",
     "settings.talkAdapterLocal": "Local microphone only",
     "settings.talkAdapterReolink": "Reolink",
-    "settings.talkAdapterDahua": "Dahua VTO",
-    "settings.talkAdapterSip": "SIP/WebRTC",
+    "settings.talkAdapterDahua": "Dahua VTO (work in progress)",
+    "settings.talkAdapterSip": "SIP/WebRTC (work in progress)",
     "settings.talkTarget": "Talk target address",
-    "settings.talkTargetHint": "Optional place for a future adapter address, for example SIP/WebRTC/go2rtc.",
+    "settings.talkTargetHint": "For Reolink, enter the device or future adapter address, for example http://192.168.1.10 or a go2rtc/WebRTC endpoint.",
+    "settings.adapterReolinkHint": "Priority: active audio development for Reolink Doorbell.",
+    "settings.adapterVtoHint": "Work in progress: Dahua VTO stays on the roadmap, but is not an active adapter yet.",
     "settings.doorbell": "Doorbell",
     "settings.gate": "Gate",
     "settings.door": "Wicket",
@@ -276,6 +283,9 @@ const translations = {
     "talk.statusReady": "Microphone ready",
     "talk.statusDisabled": "Talk disabled",
     "talk.statusLocalOnly": "Microphone works locally. Device adapter is not connected yet.",
+    "talk.statusReolinkReady": "Reolink adapter is ready for audio chunks",
+    "talk.statusReolinkMissingTarget": "Reolink adapter needs a target address in settings",
+    "talk.statusWip": "This adapter is work in progress",
     "talk.statusLive": "Speak now",
     "talk.statusIdle": "Microphone idle",
     "talk.statusStreaming": "Audio reaches backend: {chunks} chunks",
@@ -1422,11 +1432,21 @@ function updateTalkStatus(talk) {
     return;
   }
 
-  const isLocalOnly = talk.adapter === "local_microphone" || talk.audio_transport === "browser_microphone_only";
-  talkStatusText.textContent = isLocalOnly
-    ? translations[currentLanguage]["talk.statusLocalOnly"]
-    : translations[currentLanguage]["talk.statusReady"];
-  talkStatusText.className = isLocalOnly ? "talk-status warning" : "talk-status success";
+  if (talk.adapter === "reolink") {
+    const ready = talk.adapter_state === "ready" || talk.adapter_ready === true;
+    talkStatusText.textContent = translations[currentLanguage][ready ? "talk.statusReolinkReady" : "talk.statusReolinkMissingTarget"];
+    talkStatusText.className = ready ? "talk-status success" : "talk-status warning";
+    return;
+  }
+
+  if (talk.adapter_wip || talk.adapter_state === "work_in_progress") {
+    talkStatusText.textContent = translations[currentLanguage]["talk.statusWip"];
+    talkStatusText.className = "talk-status warning";
+    return;
+  }
+
+  talkStatusText.textContent = translations[currentLanguage]["talk.statusLocalOnly"];
+  talkStatusText.className = "talk-status warning";
 }
 
 function updateTalkStreamingStatus(chunks = talkAudioChunksSent) {

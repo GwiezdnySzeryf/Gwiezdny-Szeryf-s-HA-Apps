@@ -311,6 +311,7 @@ body.dark-theme input, body.dark-theme select { background: var(--surface-low); 
 .feature-check input { width: 18px; min-height: 18px; accent-color: var(--primary); }
 .adapter-card { padding: 16px; margin-top: 12px; border: 1px solid var(--outline); border-radius: 18px; background: var(--surface-low); }
 .adapter-card.selected { border-color: var(--primary); background: var(--primary-container); }
+.adapter-card.wip { border-style: dashed; opacity: 0.78; }
 .adapter-card strong, .adapter-card span { display: block; }
 .adapter-card span { margin-top: 5px; color: var(--muted); }
 .config-health-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
