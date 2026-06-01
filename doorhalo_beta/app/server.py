@@ -6,6 +6,7 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import parse_qs, urlparse
 
 import aiohttp
 from fastapi import FastAPI, HTTPException, Response, WebSocket, WebSocketDisconnect
@@ -20,8 +21,11 @@ USER_CONFIG_PATH = Path("/data/doorhalo.json")
 HISTORY_PATH = Path("/data/doorhalo_history.json")
 HA_REST_URL = os.environ.get("DOORHALO_HA_REST_URL", "http://supervisor/core/api")
 HA_WS_URL = os.environ.get("DOORHALO_HA_WS_URL", "ws://supervisor/core/websocket")
+GO2RTC_API_URL = os.environ.get("DOORHALO_GO2RTC_API_URL", "http://a889bffc-go2rtc:1984")
+TALK_SOURCE_BASE_URL = os.environ.get("DOORHALO_TALK_SOURCE_BASE_URL", "http://2152c17e-doorhalo-beta:8100")
 MAX_HISTORY_EVENTS = 200
 ACTIVE_TALK_SESSIONS: dict[str, dict[str, Any]] = {}
+TALK_AUDIO_SOURCES: dict[str, dict[str, Any]] = {}
 WIP_TALK_ADAPTERS = {"dahua_vto", "sip"}
 
 DEFAULT_OPTIONS = {
@@ -319,14 +323,110 @@ def audio_transport_for_adapter(adapter: str, target_configured: bool) -> str:
     return "work_in_progress" if adapter in WIP_TALK_ADAPTERS else "adapter_required"
 
 
+def parse_reolink_talk_target(target_url: str) -> dict[str, str]:
+    target_url = target_url.strip()
+    if not target_url:
+        raise HTTPException(status_code=400, detail="Reolink talk target is not configured")
+
+    if target_url.startswith(("rtsp://", "rtsps://", "onvif://")):
+        raise HTTPException(
+            status_code=400,
+            detail="Direct RTSP/ONVIF talk is not supported by Doorhalo yet. Configure a go2rtc stream and use go2rtc://stream-name.",
+        )
+
+    if target_url.startswith(("http://", "https://")):
+        parsed = urlparse(target_url)
+        query = parse_qs(parsed.query)
+        stream_name = (query.get("dst") or query.get("stream") or [""])[0]
+        if not stream_name:
+            raise HTTPException(status_code=400, detail="go2rtc target URL must include dst=stream-name")
+        api_base = f"{parsed.scheme}://{parsed.netloc}"
+        source_base = (query.get("source") or [TALK_SOURCE_BASE_URL])[0]
+        audio_codec = (query.get("audio") or ["pcma"])[0]
+        return {"type": "go2rtc", "api": api_base.rstrip("/"), "stream": stream_name, "source": source_base.rstrip("/"), "audio": audio_codec}
+
+    if target_url.startswith("go2rtc://"):
+        parsed = urlparse(target_url)
+        query = parse_qs(parsed.query)
+        stream_name = f"{parsed.netloc}{parsed.path}".strip("/")
+        if not stream_name:
+            raise HTTPException(status_code=400, detail="go2rtc target must include stream name, for example go2rtc://domofon")
+        return {
+            "type": "go2rtc",
+            "api": (query.get("api") or [GO2RTC_API_URL])[0].rstrip("/"),
+            "stream": stream_name,
+            "source": (query.get("source") or [TALK_SOURCE_BASE_URL])[0].rstrip("/"),
+            "audio": (query.get("audio") or ["pcma"])[0],
+        }
+
+    return {"type": "go2rtc", "api": GO2RTC_API_URL.rstrip("/"), "stream": target_url, "source": TALK_SOURCE_BASE_URL.rstrip("/"), "audio": "pcma"}
+
+
+def reolink_source_url(config: dict[str, str], session_id: str) -> str:
+    return f"{config['source']}/api/talk/{session_id}/source.webm"
+
+
+async def start_go2rtc_talk_stream(session: dict[str, Any]) -> None:
+    config = session.get("adapter_config") or {}
+    if session.get("go2rtc_streaming") or not config:
+        return
+
+    source_url = reolink_source_url(config, session["id"])
+    ffmpeg_source = f"ffmpeg:{source_url}#audio={config.get('audio', 'pcma')}"
+    timeout = aiohttp.ClientTimeout(total=8)
+    async with aiohttp.ClientSession(timeout=timeout) as client:
+        async with client.post(f"{config['api']}/api/streams", params={"dst": config["stream"], "src": ffmpeg_source}) as response:
+            text = await response.text()
+            if response.status >= 400:
+                session["adapter_state"] = "go2rtc_error"
+                session["adapter_detail"] = text or response.reason
+                return
+
+    session["go2rtc_streaming"] = True
+    session["adapter_state"] = "go2rtc_streaming"
+    session["adapter_detail"] = f"Forwarding microphone audio to go2rtc stream {config['stream']}"
+
+
+async def stop_go2rtc_talk_stream(session: dict[str, Any]) -> None:
+    config = session.get("adapter_config") or {}
+    if not session.get("go2rtc_streaming") or not config:
+        return
+
+    timeout = aiohttp.ClientTimeout(total=5)
+    try:
+        async with aiohttp.ClientSession(timeout=timeout) as client:
+            await client.post(f"{config['api']}/api/streams", params={"dst": config["stream"], "src": ""})
+    except aiohttp.ClientError as error:
+        session["adapter_detail"] = f"go2rtc stop failed: {error}"
+    finally:
+        session["go2rtc_streaming"] = False
+
+
 async def handle_talk_audio_chunk(session: dict[str, Any], chunk: bytes) -> None:
     if session.get("adapter") != "reolink":
         return
 
     session["adapter_chunks"] = int(session.get("adapter_chunks", 0)) + 1
     session["adapter_bytes"] = int(session.get("adapter_bytes", 0)) + len(chunk)
-    session["adapter_state"] = "reolink_buffered"
-    session["adapter_detail"] = "Audio buffered for Reolink talk adapter; device protocol output pending"
+    await start_go2rtc_talk_stream(session)
+    source = TALK_AUDIO_SOURCES.get(session["id"])
+    if not source:
+        return
+    for queue in list(source.get("queues", [])):
+        try:
+            queue.put_nowait(chunk)
+        except asyncio.QueueFull:
+            session["adapter_dropped_chunks"] = int(session.get("adapter_dropped_chunks", 0)) + 1
+
+
+async def close_talk_audio_source(session_id: str) -> None:
+    source = TALK_AUDIO_SOURCES.pop(session_id, None)
+    if not source:
+        return
+    source["closed"] = True
+    for queue in list(source.get("queues", [])):
+        with contextlib.suppress(asyncio.QueueFull):
+            queue.put_nowait(None)
 
 
 def get_talk_session(session_id: str) -> dict[str, Any]:
@@ -426,6 +526,10 @@ async def start_talk_session(payload: dict[str, Any] | None = None) -> dict[str,
 
     adapter = options.get("talk_adapter") or "local_microphone"
     target_configured = bool(options.get("talk_target_url"))
+    adapter_config = None
+    if adapter == "reolink" and target_configured:
+        adapter_config = parse_reolink_talk_target(options.get("talk_target_url", ""))
+
     session = {
         "id": uuid.uuid4().hex,
         "mode": requested_mode,
@@ -441,7 +545,11 @@ async def start_talk_session(payload: dict[str, Any] | None = None) -> dict[str,
         "adapter_detail": "",
         "transport_ready": adapter == "local_microphone" or (adapter == "reolink" and target_configured),
     }
+    if adapter_config:
+        session["adapter_config"] = adapter_config
+        session["adapter_detail"] = f"go2rtc target: {adapter_config['stream']} via {adapter_config['api']}"
     ACTIVE_TALK_SESSIONS[session["id"]] = session
+    TALK_AUDIO_SOURCES[session["id"]] = {"queues": [], "closed": False}
     append_history("talk", "Talk session started", None, f"Mode: {requested_mode}, adapter: {adapter}")
     return {"ok": True, "session": session, "talk": build_talk_status(options)}
 
@@ -457,9 +565,44 @@ async def set_push_to_talk(session_id: str, payload: dict[str, Any]) -> dict[str
 @app.post("/api/talk/{session_id}/stop")
 async def stop_talk_session(session_id: str) -> dict[str, Any]:
     session = get_talk_session(session_id)
+    await stop_go2rtc_talk_stream(session)
+    await close_talk_audio_source(session_id)
     ACTIVE_TALK_SESSIONS.pop(session_id, None)
     append_history("talk", "Talk session ended", None, f"Mode: {session.get('mode')}, adapter: {session.get('adapter')}")
     return {"ok": True, "session": session, "talk": build_talk_status()}
+
+
+@app.get("/api/talk/{session_id}/source.webm")
+async def talk_audio_source(session_id: str) -> StreamingResponse:
+    session = get_talk_session(session_id)
+    if session.get("adapter") != "reolink":
+        raise HTTPException(status_code=400, detail="Audio source is available only for the Reolink adapter")
+
+    source = TALK_AUDIO_SOURCES.setdefault(session_id, {"queues": [], "closed": False})
+    queue: asyncio.Queue[bytes | None] = asyncio.Queue(maxsize=100)
+    source["queues"].append(queue)
+    session["adapter_source_connected"] = True
+    session["adapter_source_url"] = reolink_source_url(session.get("adapter_config") or parse_reolink_talk_target(load_options().get("talk_target_url", "")), session_id)
+
+    async def stream_audio():
+        try:
+            while not source.get("closed"):
+                try:
+                    chunk = await asyncio.wait_for(queue.get(), timeout=30)
+                except asyncio.TimeoutError:
+                    break
+                if chunk is None:
+                    break
+                yield chunk
+        finally:
+            with contextlib.suppress(ValueError):
+                source["queues"].remove(queue)
+            if not source.get("queues"):
+                session = ACTIVE_TALK_SESSIONS.get(session_id)
+                if session:
+                    session["adapter_source_connected"] = False
+
+    return StreamingResponse(stream_audio(), media_type="video/webm", headers={"Cache-Control": "no-store"})
 
 
 @app.websocket("/api/talk/{session_id}/audio")
