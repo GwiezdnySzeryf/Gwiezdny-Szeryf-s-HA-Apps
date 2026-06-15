@@ -81,7 +81,7 @@ plugins:
             Konfiguracja: Configuration
             Funkcje: Features
             Changelog: Changelog
-            Wersja Beta: Beta Version
+            Photo Frame Drop Beta: Photo Frame Drop Beta
             O wersji Beta: About Beta
 
 markdown_extensions:
