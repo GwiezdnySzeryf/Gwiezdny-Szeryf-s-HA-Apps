@@ -13,12 +13,12 @@
 
 <div class="app-cards">
   <a class="app-card" href="photo-frame-drop/">
-    <div class="icon"> <img src="https://raw.githubusercontent.com/GwiezdnySzeryf/Gwiezdny-Szeryf-s-HA-Apps/refs/heads/main/photo_frame_drop/logo.png" alt="ai" width="55"></div>
+    <div class="icon"> <img src="https://raw.githubusercontent.com/GwiezdnySzeryf/Gwiezdny-Szeryf-s-HA-Apps/refs/heads/main/photo_frame_drop/logo.png" alt="ai" width="95"></div>
     <h3>Photo Frame Drop</h3>
     <p>Panel do szybkiego wgrywania zdjęć na cyfrową ramkę w Home Assistant. Drag & drop, przyjazny dla osób nie technicznych.</p>
   </a>
   <a class="app-card" href="beta/">
-    <div class="icon"><img src="https://raw.githubusercontent.com/GwiezdnySzeryf/Gwiezdny-Szeryf-s-HA-Apps/refs/heads/main/photo_frame_drop_beta/logo.png" alt="ai" width="55"></div>
+    <div class="icon"><img src="https://raw.githubusercontent.com/GwiezdnySzeryf/Gwiezdny-Szeryf-s-HA-Apps/refs/heads/main/photo_frame_drop_beta/logo.png" alt="ai" width="95"></div>
     <h3>Photo Frame Drop Beta</h3>
     <p>Wersja testowa.</p>
   </a>
