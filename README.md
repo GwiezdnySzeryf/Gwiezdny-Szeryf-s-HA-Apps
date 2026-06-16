@@ -4,9 +4,9 @@
 
 *(Wersja polska znajduje się poniżej / Polish version below)*
 
-Welcome to my personal repository of Home Assistant Apps (formerly known as Add-ons)!
+Welcome to my personal repository of Home Assistant Apps.
 
-This repository currently contains two twin applications, which you can use depending on whether you prefer the stable version or want to test the newest features in Beta.
+Warning, code is written with help of AI.
 
 ## Available Apps
 
@@ -62,9 +62,9 @@ By using this software, you agree that you do so **at your own risk**. The autho
 
 # GwiezdnySzeryf's Home Assistant Apps (PL)
 
-Witaj w moim osobistym repozytorium aplikacji dla Home Assistanta (dawniej znanych jako Add-ony / Dodatki)!
+Witaj w moim osobistym repozytorium aplikacji dla Home Assistanta!
 
-To repozytorium zawiera na ten moment dwie bliźniacze aplikacje, z których możesz korzystać zależnie od tego, czy wolisz używać wersji stabilnej, czy testować nowości w wersji Beta.
+Uwaga, kod jest napisany ze wsparciem sztucznej inteligencji.
 
 ## Dostępne Aplikacje (Apps)
 
