@@ -22,7 +22,7 @@ A testing version for enthusiasts who want to experience the latest patches and 
 
 A beta backend and Ingress panel for a native Android Home Assistant wallpanel. It handles tablet pairing with QR codes, dashboard configuration, WebSocket updates and tablet telemetry including charging state, battery level, IP address, screen resolution and aspect ratio.
 
-### 🛎️ Doorhalo Beta - NOT WORKING YET
+### 🛎️ Doorhalo Beta - NOT WORKING YET - IT'S ONLY MOCKUP
 An experimental Home Assistant Ingress intercom panel for camera preview, doorbell call UI, gate and wicket actions, mute state, and future Reolink/Dahua VTO adapters.
 
 ---
